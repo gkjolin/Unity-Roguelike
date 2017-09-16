@@ -69,9 +69,11 @@ Alternative approach 2: Although not yet available (as of this writing), the upc
 
 Currently the map generation uses a maze-room approach that closely resembles the approach taken in Diablo 2. Individual level chunks are hand-painted. A maze algorithm determines the arrangement of rooms and their connections (each cell in the maze is one level chunk). For example, we might have the following maze:
 
+```
 0 - 0
     |
 0 - 0
+```
 
 This consists of four rooms, with the dashes representing connections from one room to another. 
 
