@@ -10,15 +10,9 @@ Last tested with Unity 2017.1.1f1.
 
 Item and creature sprites were taken from [here](http://pousse.rapiere.free.fr/tome/), shared under the Creative Commons License, and drawn by David E. Gervais. 
 
-## Setup
-
-If you wish to download and set up this project for yourself, then you'll need to do two things. First, copy all the folders in Assets into the project window of a new Unity project. Next, copy the assets in ProjectSettings into your project's ProjectSettings folder, located at the top level of your Unity project's directory (note that this is not accessible from the Unity editor itself), overriding the existing versions of those assets. These settings will copy over the tags, layers, custom input axes, etc. 
-
-If sprites are appearing with a pink background, try re-importing the Sprites folder (right-click the folder, and select Reimport). Unity probably imported the sprites before my custom postprocessor which (among other things) converts the backgrounds to transparency. 
-
 ## Systems
 
-This section briefly documents at a high level how various in-game systems are implemented. 
+This section briefly documents at a high level how various in-game systems are implemented, as a reference for those trying to implement a similar system.
 
 ### GameBehaviour
 
