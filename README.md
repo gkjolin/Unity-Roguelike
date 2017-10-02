@@ -10,6 +10,18 @@ Last tested with Unity 2017.1.1f1.
 
 Item and creature sprites were taken from [here](http://pousse.rapiere.free.fr/tome/), shared under the Creative Commons License, and drawn by David E. Gervais. 
 
+## Setup and Controls
+
+No special setup is required: download the two folders (Assets and PlayerSettings) to a directory, open that directory in Unity, and you should be good to go. I will include an actual build in the future, when it makes to do so (the main reason not to do so at the moment is that the game's console implementation currently uses Debug.Log, which only works in the editor). 
+
+Movement: Arrow keys or WASD (horizontal/vertical axes).
+Pickup/Use item: G (Get axis).
+Use stairs: Space (Exit axis).
+Open map: M (Map axis).
+Open inventory: I (Inventory axis).
+
+Note: Documentation may become out of date. Up to date controls can always be determined by checking the Input Manager in the Unity Editor. 
+
 ## Systems
 
 This section briefly documents at a high level how various in-game systems are implemented, as a reference for those trying to implement a similar system.
@@ -18,20 +30,19 @@ This section briefly documents at a high level how various in-game systems are i
 
 GameBehaviour is a subclass of Unity's MonoBehaviour. Subclassing GameBehaviour instead of MonoBehaviour provides additional hooks for important events, such as when a new map is created, or when the player moves. It handles subscribing and unsubscribing to events so that this logic exists only in one place, reducing opportunity for error and making changes to the event system much easier. 
 
-Event driven architecture is fairly error prone, but when used sparingly and carefully goes a long way in decoupling classes. 
+Event driven architecture is notoriously error prone, but when used sparingly and carefully goes a long way in decoupling classes.
 
 ### Time
 
-Rather than having simple turns, the game runs on a custom time system. When dynamic entites such as enemies are instantiated, they automatically subscribe to certain game events, such as time passing. This results in a flow of logic along these lines:
+Rather than having simple turns, the game runs on a custom time system where player actions result in a certain amount of time passing. When dynamic entites such as enemies are instantiated, they automatically subscribe to changes in time. This results in a flow of logic along these lines:
 
 1. Player takes an action (moves, attacks, etc.)
 2. Player tells GameTime to increase time based on how long that action took.
 3. GameTime broadcasts an event indicating that time has passed.
 4. Subscribed entity checks if the current time exceeds the time for its next action.
-4a. If so, entity acts, and increments its personal "time to next action" variable appropriately.
-4b. If not, entity does nothing.
+5. If so, entity acts, and increments its personal "time to next action" variable appropriately. Otherwise idles.
 
-The purpose is to easily accommodate a rich notion of speed: fast monsters may move or attack several times each time a player moves, while slower ones may allow the player several actions before acting. It also allows different actions to take different amounts of time. 
+The purpose is to easily accommodate a rich notion of speed: fast monsters may move or attack several times each time a player moves, while slower ones may allow the player several actions before acting. It also allows different actions to take different amounts of time. Moving is faster than attacking, and certain abilities may take longer than others.
 
 Implementation notes:
 
