@@ -14,14 +14,9 @@ namespace AKSaigyouji.Roguelike
 
         [SerializeField] int armor;
 
-        public override Item Build(string name)
+        public override Item Build(ItemBuildContext context)
         {
-            return BuildShield(name);
-        }
-
-        public Shield BuildShield(string name)
-        {
-            return new Shield(this, name);
+            return new Shield(this, name, Enumerable.Empty<Affix>());
         }
     }
 }

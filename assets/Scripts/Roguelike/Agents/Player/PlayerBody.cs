@@ -32,29 +32,22 @@ namespace AKSaigyouji.Roguelike
             stats.ChangeHealth(amount);
         }
 
-        public void Attack(int attackRoll, int damageRoll, string attackText)
+        public void Attack(int damageRoll, string attackText)
         {
             if (Health < 1) // already dead, do nothing
             {
                 return;
             }
             string attackResultText;
-            if (attackRoll >= Armor)
+            stats.ChangeHealth(-damageRoll);
+            if (Health < 1)
             {
-                stats.ChangeHealth(-damageRoll);
-                if (Health < 1)
-                {
-                    attackResultText = string.Format(deathTextFormat, damageRoll);
-                    Lose();
-                }
-                else
-                {
-                    attackResultText = string.Format(strikeTextFormat, damageRoll, Health);
-                }
+                attackResultText = string.Format(deathTextFormat, damageRoll);
+                Lose();
             }
             else
             {
-                attackResultText = missText;
+                attackResultText = string.Format(strikeTextFormat, damageRoll, Health);
             }
             Logger.LogFormat("{0} {1}", attackText, attackResultText);
         }

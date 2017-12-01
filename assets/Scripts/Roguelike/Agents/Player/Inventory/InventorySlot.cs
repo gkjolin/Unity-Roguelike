@@ -7,9 +7,9 @@ namespace AKSaigyouji.Roguelike
 {
     public enum InventorySlot
     {
-        Weapon,
-        BodyArmor,
-        Shield,
-        Consumable
+        Weapon = 1,
+        BodyArmor = 2,
+        Shield = 3,
+        NotEquippable = 255
     }
 }

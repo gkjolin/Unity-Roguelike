@@ -11,8 +11,10 @@ namespace AKSaigyouji.Roguelike
         [SerializeField] CameraController cameraController;
         [SerializeField] PlayerController playerController;
         [SerializeField] InventoryUI inventory;
+        [SerializeField] CharacterSheetUI characterSheet;
 
         const string INVENTORY_AXIS = "Inventory";
+        const string CHARACTER_AXIS = "Character";
         const string HORIZONTAL_AXIS = "Horizontal";
         const string VERTICAL_AXIS = "Vertical";
         const string PICKUP_AXIS = "Get";
@@ -25,6 +27,8 @@ namespace AKSaigyouji.Roguelike
         {
             Assert.IsNotNull(playerController);
             Assert.IsNotNull(cameraController);
+            Assert.IsNotNull(inventory);
+            Assert.IsNotNull(characterSheet);
         }
 
         void Update()
@@ -35,7 +39,11 @@ namespace AKSaigyouji.Roguelike
             }
             if (Input.GetButtonDown(INVENTORY_AXIS))
             {
-                inventory.ToggleInventory();
+                inventory.Toggle();
+            }
+            if (Input.GetButtonDown(CHARACTER_AXIS))
+            {
+                characterSheet.Toggle();
             }
 
             // The following has the effect of diverting inputs towards the correct system, so that e.g.
@@ -52,6 +60,7 @@ namespace AKSaigyouji.Roguelike
 
         void ToggleMap()
         {
+            // This logic doesn't really belong in the input handler. Should be moved in the future.
             if (cameraController.IsMapToggled)
             {
                 // Subtract off all the translations thus far, so that when we toggle off the map, we're focused back

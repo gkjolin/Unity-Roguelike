@@ -21,7 +21,7 @@ namespace AKSaigyouji.Roguelike
         }
         [SerializeField] Item item;
 
-        public void ClearItem()
+        public void Clear()
         {
             item = null;
             GetComponent<SpriteRenderer>().sprite = null;

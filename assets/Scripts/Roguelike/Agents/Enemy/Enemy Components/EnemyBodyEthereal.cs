@@ -5,6 +5,8 @@ using UnityEngine;
 
 namespace AKSaigyouji.Roguelike
 {
+    // Inheritance is the wrong tool for this job. Should find a way to do this via composition in the future.
+
     /// <summary>
     /// Behaves like the standard enemy body, but all attacks have a % chance to miss due to ethereality. 
     /// </summary>
@@ -13,15 +15,15 @@ namespace AKSaigyouji.Roguelike
         [Tooltip("Percent chance to miss, from 0 to 100.")]
         [SerializeField] int chanceToMiss = 50;
 
-        public override void Attack(int attackRoll, int damageRoll, string attackText)
+        public override void Attack(int damageRoll, string attackText)
         {
             if (UnityEngine.Random.Range(0, 100) > chanceToMiss)
             {
-                base.Attack(attackRoll, damageRoll, attackText);
+                base.Attack(damageRoll, attackText);
             }
             else
             {
-                Logger.Log("Your attack passes through harmlessly!");
+                Logger.Log("Your attack phases through!");
             }
         }
     } 

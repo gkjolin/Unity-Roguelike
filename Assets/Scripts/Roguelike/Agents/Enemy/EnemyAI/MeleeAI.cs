@@ -85,9 +85,6 @@ namespace AKSaigyouji.Roguelike
             lastTargetCoords = INVALID_POSITION;
         }
 
-        /// <summary>
-        /// Increments the time until next action and invalidates the player position
-        /// </summary>
         void Idle()
         {
             lastTargetCoords = INVALID_POSITION;
@@ -96,14 +93,13 @@ namespace AKSaigyouji.Roguelike
         void Attack(Transform target)
         {
             IAttackable targetBody = target.GetComponent<IAttackable>();
-            int accuracy = UnityEngine.Random.Range(0, 100) + Stats.Accuracy;
             int damage = UnityEngine.Random.Range(Stats.MinDamage, Stats.MaxDamage);
-            targetBody.Attack(accuracy, damage, name + " attacks.");
+            targetBody.Attack(damage, name + " attacks.");
         }
 
         bool TryMoveTo(Coord destination)
         {
-            // This assertion is very useful in catching subtle bugs involving invalid path state.
+            // This assertion is useful in catching subtle bugs involving invalid path state.
             Assert.IsTrue(destination.SquaredDistance((Coord)transform.position) <= 2);
             if (CanMoveTo(destination))
             {

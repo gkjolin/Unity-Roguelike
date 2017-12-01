@@ -1,136 +1,85 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.Assertions;
 
 namespace AKSaigyouji.Roguelike
 {
-    public sealed class Inventory : GameBehaviour
+    public sealed class Inventory : GameBehaviour, IInventory
     {
+        // This is not an ideal way to manage the equipped items, but it's a simple one. Will investigate alternatives
+        // when it's more clear what other systems need to interact with the equipped items and how.
         public Weapon Weapon { get { return weapon; } }
         public Shield Shield { get { return shield; } }
         public BodyArmor BodyArmor { get { return armor; } }
 
+        public IEnumerable<Item> EquippedItems
+        {
+            get
+            {
+                yield return Weapon;
+                yield return Shield;
+                yield return BodyArmor;
+            }
+        }
+
+        // Only through the IInventory interface should the items be changed.
+        Weapon IInventory.Weapon { get { return Weapon; } set { weapon = value; } }
+        Shield IInventory.Shield { get { return Shield; } set { shield = value; } }
+        BodyArmor IInventory.BodyArmor { get { return BodyArmor; } set { armor = value; } }
+
         [SerializeField] Ground ground;
-        [SerializeField] ItemComparison itemComparison;
 
         [Header("Currently Equipped Items")]
-        [SerializeField] Weapon weapon;
-        [SerializeField] Shield shield;
-        [SerializeField] BodyArmor armor;
+        [SerializeField, ReadOnly] Weapon weapon;
+        [SerializeField, ReadOnly] Shield shield;
+        [SerializeField, ReadOnly] BodyArmor armor;
 
         [Header("Starting Items")]
         [SerializeField] WeaponTemplate startingWeapon;
         [SerializeField] ShieldTemplate startingShield;
         [SerializeField] ArmorTemplate startingArmor;
 
-        Item itemOnGround;
+        [SerializeField] InventoryChangeEvent inventoryChanged;
 
         void Start()
         {
             Assert.IsNotNull(ground);
-            Assert.IsNotNull(itemComparison);
 
-            weapon = startingWeapon.BuildWeapon("Starter Dagger");
-            shield = startingShield.BuildShield("Starter Shield");
-            armor = startingArmor.BuildArmor("Starter Armor");
-        }
-
-        protected override void OnPlayerAction()
-        {
-            itemOnGround = ground.GetItemAt(transform.position);
-            UpdateItemDisplay();
+            EquipStartingItem(startingWeapon);
+            EquipStartingItem(startingShield);
+            EquipStartingItem(startingArmor);
+            inventoryChanged.Invoke(EquippedItems);
         }
 
         public bool TryPickupItem()
         {
-            if (itemOnGround != null)
-            {
-                ground.RemoveItem(transform.position);
-                Item replacedItem;
-                switch (itemOnGround.Slot)
-                {
-                    case InventorySlot.Weapon:
-                        replacedItem = ReplaceWeapon((Weapon)itemOnGround);
-                        break;
-                    case InventorySlot.BodyArmor:
-                        replacedItem = ReplaceArmor((BodyArmor)itemOnGround);
-                        break;
-                    case InventorySlot.Shield:
-                        replacedItem = ReplaceShield((Shield)itemOnGround);
-                        break;
-                    case InventorySlot.Consumable:
-                        ((IConsumable)itemOnGround).Use(gameObject);
-                        return true;
-                    default:
-                        throw new System.ComponentModel.InvalidEnumArgumentException("Internal error: unidentified inventory slot.");
-                }
-                ground.TryPlaceItemOnGround(replacedItem, transform.position);
-                return true;
-            }
-            else
-            {
+            if (!ground.IsItemOnGround)
                 return false;
-            }
-        }
 
-        void UpdateItemDisplay()
-        {
-            if (itemOnGround == null)
+            Item item = ground.PickUpItem();
+            if (item.CanEquip)
             {
-                itemComparison.ClearDisplay();
-            }
-            else if (itemOnGround.Slot == InventorySlot.Consumable)
-            {
-                itemComparison.Display(itemOnGround);
+                Item oldItem = item.Equip(this);
+                ground.DropItem(oldItem, transform.position);
+                inventoryChanged.Invoke(EquippedItems);
             }
             else
             {
-                Item itemToCompare = GetMatchingItem(itemOnGround);
-                itemComparison.Display(itemOnGround, itemToCompare);
+                // might be better to fold this into Equip so that all items can be 'equipped'
+                IConsumable itemAsConsumable = (IConsumable)item;
+                itemAsConsumable.Use(gameObject);
             }
+            return true;
         }
 
-        /// <summary>
-        /// Retrieves the equipped item corresponding to this item's slot.
-        /// </summary>
-        Item GetMatchingItem(Item item)
+        void EquipStartingItem(ItemTemplate startingItem)
         {
-            switch (item.Slot)
-            {
-                case InventorySlot.Weapon:
-                    return weapon;
-                case InventorySlot.BodyArmor:
-                    return armor;
-                case InventorySlot.Shield:
-                    return shield;
-                case InventorySlot.Consumable:
-                    throw new ArgumentException("Consumable item does not have matching equipped item.");
-                default:
-                    throw new System.ComponentModel.InvalidEnumArgumentException("Internal error: unidentified inventory slot.");
-            }
-        }
-
-        Weapon ReplaceWeapon(Weapon weapon)
-        {
-            return Replace(weapon, ref this.weapon);
-        }
-
-        BodyArmor ReplaceArmor(BodyArmor armor)
-        {
-            return Replace(armor, ref this.armor);
-        }
-
-        Shield ReplaceShield(Shield shield)
-        {
-            return Replace(shield, ref this.shield);
-        }
-
-        T Replace<T>(T newItem, ref T oldItem) where T : Item
-        {
-            Assert.IsNotNull(oldItem);
-            var temp = oldItem;
-            oldItem = newItem;
-            return temp;
+            Assert.IsNotNull(startingItem);
+            startingItem.Build(ItemBuildContext.MundaneContext)
+                        .Equip(this);
         }
     } 
 }

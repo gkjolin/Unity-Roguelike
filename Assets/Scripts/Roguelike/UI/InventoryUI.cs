@@ -9,9 +9,7 @@ namespace AKSaigyouji.Roguelike
 {
     public sealed class InventoryUI : MonoBehaviour
     {
-        [SerializeField] PlayerStats stats;
         [SerializeField] Inventory inventory;
-        [SerializeField] Text characterSheet;
 
         [SerializeField] ItemDisplayUI weapon;
         [SerializeField] ItemDisplayUI armor;
@@ -19,8 +17,6 @@ namespace AKSaigyouji.Roguelike
 
         void Start()
         {
-            Assert.IsNotNull(characterSheet);
-            Assert.IsNotNull(stats);
             Assert.IsNotNull(inventory);
 
             Assert.IsNotNull(weapon);
@@ -28,7 +24,7 @@ namespace AKSaigyouji.Roguelike
             Assert.IsNotNull(shield);
         }
 
-        public void ToggleInventory()
+        public void Toggle()
         {
             if (gameObject.activeInHierarchy)
             {
@@ -43,18 +39,12 @@ namespace AKSaigyouji.Roguelike
         void DisplayInventory()
         {
             gameObject.SetActive(true);
-            UpdateCharacterStats();
             UpdateItems();
         }
 
         void HideInventory()
         {
             gameObject.SetActive(false);
-        }
-
-        void UpdateCharacterStats()
-        {
-            characterSheet.text = stats.GetFormattedStatus();
         }
 
         void UpdateItems()

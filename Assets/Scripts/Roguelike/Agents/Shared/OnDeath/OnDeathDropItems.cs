@@ -10,13 +10,13 @@ namespace AKSaigyouji.Roguelike
         public ItemClass ItemClass { get { return itemClass; } }
         [SerializeField] ItemClass itemClass;
 
-        public int NumitemsToDrop { get { return numItemsToDrop; } }
+        public int NumItemsToDrop { get { return numItemsToDrop; } }
         [SerializeField] int numItemsToDrop = 1;
 
-        IItemFactory itemFactory;
+        ItemFactory itemFactory;
         Ground ground;
 
-        public void Initialize(IItemFactory itemFactory, Ground ground)
+        public void Initialize(ItemFactory itemFactory, Ground ground)
         {
             this.itemFactory = itemFactory;
             this.ground = ground;
@@ -30,7 +30,7 @@ namespace AKSaigyouji.Roguelike
                 if (chosenTemplate != null)
                 {
                     Item item = itemFactory.Build(chosenTemplate);
-                    ground.TryPlaceItemOnGround(item, transform.position);
+                    ground.DropItem(item, transform.position);
                 }
             }
         }

@@ -8,17 +8,12 @@ namespace AKSaigyouji.Roguelike
     [CreateAssetMenu(fileName = "Health Potion", menuName = "AKSaigyouji/Items/Health Potion")]
     public sealed class PotionTemplate : ItemTemplate
     {
-        public override InventorySlot Slot { get { return InventorySlot.Consumable; } }
+        public override InventorySlot Slot { get { return InventorySlot.NotEquippable; } }
         public int HealthRestored { get { return healthRestored; } }
 
         [SerializeField] int healthRestored;
 
-        public override Item Build(string name)
-        {
-            return BuildPotion(name);
-        }
-
-        public Potion BuildPotion(string name)
+        public override Item Build(ItemBuildContext context)
         {
             return new Potion(this, name);
         }

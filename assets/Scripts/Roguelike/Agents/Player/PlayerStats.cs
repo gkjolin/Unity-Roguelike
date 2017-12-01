@@ -1,28 +1,34 @@
-﻿using System;
+﻿/* This class is designed to be the point through which other classes interact with all of the player's stats,
+ both transient (current health, experience, etc.) and durable (max health, resistances, armor, etc). It hides
+ the complexity in the fact that the stats are distributed across many systems (skills, items, base attributes, 
+ etc.)*/
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace AKSaigyouji.Roguelike
 {
+    /// <summary>
+    /// Interface to all of the player's stats.
+    /// </summary>
     public sealed class PlayerStats : MonoBehaviour
     {
         public int Level { get { return level; } }
-        public int MaxHealth { get { return maxHealth; } }
-        public int Armor { get { return armor; } }
-        public int Accuracy { get { return accuracy; } }
+        public int MaxHealth { get { return Attributes[Attribute.Health]; } }
+        public int Armor { get { return Attributes[Attribute.Armor]; } }
         public float Speed { get { return speed; } }
 
         public int CurrentHealth { get { return currentHealth; } }
         public int Experience { get { return experience; } }
 
-        [SerializeField] int level;
-        [SerializeField] int maxHealth;
-        [SerializeField] int armor;
-        [SerializeField] int accuracy;
-        [SerializeField] float speed;
+        IndexedAttributes Attributes { get { return attributeAggregator.Attributes; } }
 
-        [SerializeField] int healthPerLevel;
-        [SerializeField] int armorPerLevel;
-        [SerializeField] int accuracyPerLevel;
+        [SerializeField] AttributeAggregator attributeAggregator;
+
+        [SerializeField] int level;
+        [SerializeField] float speed;
 
         [SerializeField, ReadOnly] int currentHealth;
         [SerializeField, ReadOnly] int experience;
@@ -33,7 +39,7 @@ namespace AKSaigyouji.Roguelike
 
         void Start()
         {
-            currentHealth = maxHealth;
+            currentHealth = MaxHealth;
         }
 
         public void AddExperience(int quantity)
@@ -58,39 +64,31 @@ namespace AKSaigyouji.Roguelike
         public void ChangeHealth(int quantity)
         {
             currentHealth += quantity;
-            currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+            currentHealth = Mathf.Clamp(currentHealth, 0, MaxHealth);
         }
 
+        // Quick and dirty temporary solution.
         public string GetFormattedStatus()
         {
-            return string.Format("Level: {0}\nHealth: {1}/{2}\nArmor: {3}\nSpeed: {4}\nExperience: {5}\nNext Level: {6}",
-                level, currentHealth, maxHealth, armor, speed, experience, ExperienceToNextLevel);
+            return string.Format("Level: {0}\nHealth: {1}/{2}\nArmor: {3}\nSpeed: {4}\nExperience: {5}\nNext Level: {6}\n",
+                level, currentHealth, MaxHealth, Armor, speed, experience, ExperienceToNextLevel)
+                + string.Join("\n", Attributes.Select(pair => string.Format("{0}: {1}", pair.Key, pair.Value)).ToArray());
         }
 
         void OnValidate()
         {
             level = Mathf.Max(1, level);
-            maxHealth = Mathf.Max(1, maxHealth);
-            armor = Mathf.Max(0, armor);
-            accuracy = Mathf.Max(0, accuracy);
             speed = Mathf.Max(0.001f, speed);
-
-            healthPerLevel = Mathf.Max(0, healthPerLevel);
-            armorPerLevel = Mathf.Max(0, armorPerLevel);
-            accuracyPerLevel = Mathf.Max(0, accuracyPerLevel);
         }
 
         void LevelUp()
         {
             level++;
-            maxHealth += healthPerLevel;
-            armor += armorPerLevel;
-            accuracy += accuracyPerLevel;
         }
 
         void RestoreHealth()
         {
-            currentHealth = maxHealth;
+            currentHealth = MaxHealth;
         }
     } 
 }

@@ -18,14 +18,40 @@ namespace AKSaigyouji.Roguelike
         [SerializeField] int maxDamage;
         [SerializeField] int critMultiplier;
 
-        public override Item Build(string name)
+        public override Item Build(ItemBuildContext context)
         {
-            return BuildWeapon(name);
+            if (context.NumAffixes > 0)
+            {
+                var affixDB = context.AffixDatabase;
+                var affixes = affixDB.WeaponAffixes;
+                var prefixes = affixes.Affixes.Where(aff => aff.Location == AffixLocation.Prefix).ToArray();
+                var suffixes = affixes.Affixes.Where(aff => aff.Location == AffixLocation.Suffix).ToArray();
+                List<Affix> chosenAffixes = new List<Affix>();
+                Affix prefix = ChooseRandomAffix(prefixes);
+                Affix suffix = ChooseRandomAffix(suffixes);
+                chosenAffixes.Add(prefix);
+                chosenAffixes.Add(suffix);
+                return new Weapon(this, string.Format("{0} {1} of {2}", prefix.Name, Name, suffix.Name), chosenAffixes);
+            }
+            else
+            {
+                return new Weapon(this, Name, Enumerable.Empty<Affix>());
+            }
         }
 
-        public Weapon BuildWeapon(string name)
+        Affix ChooseRandomAffix(AffixDefinition[] affixDefinitions)
         {
-            return new Weapon(this, name);
+            return new Affix(ChooseRandomAffixDefinition(affixDefinitions), GetRandomQuality());
+        }
+
+        AffixDefinition ChooseRandomAffixDefinition(AffixDefinition[] affixes)
+        {
+            return affixes[UnityEngine.Random.Range(0, affixes.Length)];
+        }
+
+        float GetRandomQuality()
+        {
+            return UnityEngine.Random.Range(0f, 1f);
         }
     } 
 }

@@ -31,29 +31,15 @@ namespace AKSaigyouji.Roguelike
             this.stats = stats;
         }
 
-        public virtual void Attack(int attackRoll, int damageRoll, string attackText)
+        public virtual void Attack(int damageRoll, string attackText)
         {
             if (IsDead)
             {
-                return;
+                return; // don't beat a dead horse
             }
-            string attackResultText;
-            if (attackRoll >= Defense)
-            {
-                stats.InflictDamage(damageRoll);
-                if (IsDead)
-                {
-                    attackResultText = string.Format("You deal {0} damage, fatally wounding it.", damageRoll);
-                }
-                else
-                {
-                    attackResultText = string.Format("{0} damage dealt.", damageRoll);
-                }
-            }
-            else
-            {
-                attackResultText = "You miss.";
-            }
+            stats.InflictDamage(damageRoll);
+            string attackTextFormat = IsDead ? "You deal {0} damage, fatally wounding it." : "{0} damage dealt.";
+            string attackResultText = string.Format(attackTextFormat, damageRoll);
             Logger.LogFormat("{0} {1}", attackText, attackResultText);
             if (IsDead)
             {

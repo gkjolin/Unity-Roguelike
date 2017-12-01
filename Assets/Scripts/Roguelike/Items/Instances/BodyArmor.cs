@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace AKSaigyouji.Roguelike
 {
@@ -11,9 +13,16 @@ namespace AKSaigyouji.Roguelike
 
         readonly string displayString;
 
-        public BodyArmor(ArmorTemplate template, string name) : base(template, name)
+        public BodyArmor(ArmorTemplate template, string name, IEnumerable<Affix> affixes) : base(template, name, affixes)
         {
             displayString = string.Format("{0} armor", Armor);
+        }
+
+        public override Item Equip(IInventory inventory)
+        {
+            BodyArmor old = inventory.BodyArmor;
+            inventory.BodyArmor = this;
+            return old;
         }
     } 
 }
