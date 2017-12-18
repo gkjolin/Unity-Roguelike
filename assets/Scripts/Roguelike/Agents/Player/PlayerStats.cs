@@ -16,30 +16,34 @@ namespace AKSaigyouji.Roguelike
     public sealed class PlayerStats : MonoBehaviour
     {
         public int Level { get { return level; } }
-        public int MaxHealth { get { return Attributes[Attribute.Health]; } }
-        public int Armor { get { return Attributes[Attribute.Armor]; } }
-        public float Speed { get { return speed; } }
 
         public int CurrentHealth { get { return currentHealth; } }
         public int Experience { get { return experience; } }
+        public int ExperienceToNextLevel { get { return 500 * level * (level + 1); } }
 
         IndexedAttributes Attributes { get { return attributeAggregator.Attributes; } }
 
         [SerializeField] AttributeAggregator attributeAggregator;
 
         [SerializeField] int level;
-        [SerializeField] float speed;
 
         [SerializeField, ReadOnly] int currentHealth;
         [SerializeField, ReadOnly] int experience;
 
-        // Levels go by 1000, 3000, 6000, 10000, etc (3rd edition D&D).
+        // Levels go by 1000, 3000, 6000, 10000, etc (3rd edition D&D, quadratic growth). Quadratic growth naturally
+        // makes farming lower-level enemies inefficient without imposing special penalties.
         bool HaveEnoughExperienceToLevel { get { return experience >= ExperienceToNextLevel; } }
-        int ExperienceToNextLevel { get { return 500 * level * (level + 1); } }
+
+        const int HEALTH_PER_VIT = 3;
 
         void Start()
         {
-            currentHealth = MaxHealth;
+            currentHealth = GetAttribute(Attribute.Health);
+        }
+        
+        public int GetAttribute(Attribute attribute)
+        {
+            return Attributes[attribute];
         }
 
         public void AddExperience(int quantity)
@@ -49,7 +53,7 @@ namespace AKSaigyouji.Roguelike
 
             experience += quantity;
             Logger.LogFormat("Gained {0} experience.", quantity);
-            while (HaveEnoughExperienceToLevel) 
+            while (HaveEnoughExperienceToLevel) // though unlikely, it's possible to gain multiple levels at once
             {
                 Logger.LogFormat("Level up! You are now level {0}.", level + 1);
                 LevelUp();
@@ -64,21 +68,7 @@ namespace AKSaigyouji.Roguelike
         public void ChangeHealth(int quantity)
         {
             currentHealth += quantity;
-            currentHealth = Mathf.Clamp(currentHealth, 0, MaxHealth);
-        }
-
-        // Quick and dirty temporary solution.
-        public string GetFormattedStatus()
-        {
-            return string.Format("Level: {0}\nHealth: {1}/{2}\nArmor: {3}\nSpeed: {4}\nExperience: {5}\nNext Level: {6}\n",
-                level, currentHealth, MaxHealth, Armor, speed, experience, ExperienceToNextLevel)
-                + string.Join("\n", Attributes.Select(pair => string.Format("{0}: {1}", pair.Key, pair.Value)).ToArray());
-        }
-
-        void OnValidate()
-        {
-            level = Mathf.Max(1, level);
-            speed = Mathf.Max(0.001f, speed);
+            currentHealth = Mathf.Clamp(currentHealth, 0, GetAttribute(Attribute.Health));
         }
 
         void LevelUp()
@@ -88,7 +78,7 @@ namespace AKSaigyouji.Roguelike
 
         void RestoreHealth()
         {
-            currentHealth = MaxHealth;
+            currentHealth = GetAttribute(Attribute.Health);
         }
     } 
 }

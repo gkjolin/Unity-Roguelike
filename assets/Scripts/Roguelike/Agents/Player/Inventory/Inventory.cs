@@ -31,6 +31,8 @@ namespace AKSaigyouji.Roguelike
         BodyArmor IInventory.BodyArmor { get { return BodyArmor; } set { armor = value; } }
 
         [SerializeField] Ground ground;
+        [SerializeField] GameObject playerGO;
+        [SerializeField] ItemFactory itemFactory;
 
         [Header("Currently Equipped Items")]
         [SerializeField, ReadOnly] Weapon weapon;
@@ -70,7 +72,7 @@ namespace AKSaigyouji.Roguelike
             {
                 // might be better to fold this into Equip so that all items can be 'equipped'
                 IConsumable itemAsConsumable = (IConsumable)item;
-                itemAsConsumable.Use(gameObject);
+                itemAsConsumable.Use(transform.parent.gameObject);
             }
             return true;
         }
@@ -78,7 +80,7 @@ namespace AKSaigyouji.Roguelike
         void EquipStartingItem(ItemTemplate startingItem)
         {
             Assert.IsNotNull(startingItem);
-            startingItem.Build(ItemBuildContext.MundaneContext)
+            startingItem.BuildMundane(startingItem.Name)
                         .Equip(this);
         }
     } 

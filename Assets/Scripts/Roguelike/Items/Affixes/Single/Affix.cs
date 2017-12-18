@@ -17,27 +17,36 @@ using UnityEngine.Assertions;
 namespace AKSaigyouji.Roguelike
 {
     /// <summary>
-    /// Represents an instance of an affix. 
+    /// Represents a concrete instance of an affix. 
     /// </summary>
     [Serializable]
     public sealed class Affix
     {
         public string Name { get { return affix.Name; } }
-        public AffixLocation Location { get { return affix.Location; } }
-        public float Quality { get { return quality; } }
+        public string Description { get { return affix.GetAffixDescription(quality); } }
+        public bool IsPrefix { get { return affix.IsPrefix; } }
+        public bool IsSuffix { get { return affix.IsSuffix; } }
+        public QualityRoll Quality { get { return quality; } }
 
+        // This is a light-weight way to represent a potentially large number of affixes.
         [SerializeField] AffixDefinition affix;
-        [SerializeField] float quality;
+        [SerializeField] QualityRoll quality;
+        [SerializeField, ReadOnly] bool appliedToItem;
 
-        public Affix(AffixDefinition definition, float quality)
+        /// <param name="appliedToItem">Affix was applied directly to an item, so it will do nothing when equipped.</param>
+        public Affix(AffixDefinition definition, QualityRoll quality, bool appliedToItem = false)
         {
             affix = definition;
             this.quality = quality;
+            this.appliedToItem = appliedToItem;
         }
 
         public void Equip(IEquipContext context)
         {
-            affix.OnEquip(context, quality);
+            if (!appliedToItem) // the affix was applied directly to the item, so we don't apply its effect on equip
+            {
+                affix.OnEquip(context, quality);
+            }
         }
     }
 }

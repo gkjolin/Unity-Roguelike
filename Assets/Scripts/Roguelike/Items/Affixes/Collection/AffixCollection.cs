@@ -10,10 +10,9 @@ namespace AKSaigyouji.Roguelike
     /// <summary>
     /// Base class for assets that manage a collection of affixes.
     /// </summary>
-    public abstract class AffixCollection : ScriptableObject
+    public abstract class AffixCollection : ScriptableObject, IAffixCollection<AffixDefinition>
     {
         public abstract IEnumerable<AffixDefinition> Affixes { get; }
         public abstract int Count { get; }
-        public abstract AffixDefinition this[int index] { get; }
     } 
 }

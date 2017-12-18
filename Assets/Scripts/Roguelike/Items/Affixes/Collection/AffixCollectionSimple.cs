@@ -10,12 +10,11 @@ namespace AKSaigyouji.Roguelike
     /// <summary>
     /// A simple list of affixes.
     /// </summary>
-    [CreateAssetMenu(fileName = "Affix Collection", menuName = "AKSaigyouji/Affixes/Collection")]
+    [CreateAssetMenu(fileName = "Affix Collection", menuName = "AKSaigyouji/Affixes/Collection (Simple)", order = 5)]
     public sealed class AffixCollectionSimple : AffixCollection
     {
         public override int Count { get { return affixes.Length; } }
         public override IEnumerable<AffixDefinition> Affixes { get { return affixes; } }
-        public override AffixDefinition this[int index] { get { return affixes[index]; } }
 
         [SerializeField] AffixDefinition[] affixes;
     }

@@ -11,6 +11,8 @@ namespace AKSaigyouji.Roguelike
         protected IMap Map { get { return map; } }
         protected EnemyStats Stats { get { return stats; } }
 
+        // enemies are created dynamically, so we can't manually set up dependencies in the editor (and there would
+        // be too many anyway). Instead, these have to be set up with the Initialize method.
         IPathFinder pathFinder;
         Transform target;
         EnemyStats stats;

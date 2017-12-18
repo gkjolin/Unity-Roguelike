@@ -10,14 +10,12 @@ namespace AKSaigyouji.Roguelike
     {
         public int HealthRestored { get { return template.HealthRestored; } }
 
-        public override string DisplayString { get { return displayString; } }
-
-        readonly string displayString;
-
-        public Potion(PotionTemplate template, string name) : base(template, name, Enumerable.Empty<Affix>())
+        public override string ItemDescription
         {
-            displayString = string.Format("{0} health", HealthRestored);
+            get { return template.BuildDescription(HealthRestored); }
         }
+
+        public Potion(PotionTemplate template, string name) : base(template, name, Enumerable.Empty<Affix>()) { }
 
         public void Use(GameObject consumer)
         {

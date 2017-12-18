@@ -15,7 +15,7 @@ namespace AKSaigyouji.Roguelike
         [SerializeField] ItemDisplayUI armor;
         [SerializeField] ItemDisplayUI shield;
 
-        void Start()
+        void Awake()
         {
             Assert.IsNotNull(inventory);
 

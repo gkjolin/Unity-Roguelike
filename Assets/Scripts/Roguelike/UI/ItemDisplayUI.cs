@@ -4,20 +4,23 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.UI;
+using TMPro;
 
 namespace AKSaigyouji.Roguelike
 {
     public sealed class ItemDisplayUI : MonoBehaviour
     {
         [SerializeField] Image icon;
-        [SerializeField] Text itemName;
-        [SerializeField] Text description;
+        [SerializeField] TMP_Text itemName;
+        [SerializeField] TMP_Text description;
+        [SerializeField] TMP_Text attributes;
 
         void Start()
         {
             Assert.IsNotNull(icon);
             Assert.IsNotNull(itemName);
             Assert.IsNotNull(description);
+            Assert.IsNotNull(attributes);
         }
 
         public void Disable()
@@ -37,7 +40,8 @@ namespace AKSaigyouji.Roguelike
 
             icon.sprite = item.Icon;
             itemName.text = item.Name;
-            description.text = item.DisplayString;
+            description.text = item.ItemDescription;
+            attributes.text = item.ItemBonuses;
         }
     } 
 }

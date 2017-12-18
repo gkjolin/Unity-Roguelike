@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace AKSaigyouji.Roguelike
 {
@@ -14,44 +15,40 @@ namespace AKSaigyouji.Roguelike
 
         public override InventorySlot Slot { get { return InventorySlot.Weapon; } }
 
+        protected override string ItemDescriptionFormat { get { return "{0} - {1} Damage\n{2}x Critical Multiplier"; } }
+
         [SerializeField] int minDamage;
         [SerializeField] int maxDamage;
         [SerializeField] int critMultiplier;
 
-        public override Item Build(ItemBuildContext context)
+        WeaponEnhancement tempEnhancement = new WeaponEnhancement();
+
+        public string BuildDescription(int minDamage, int maxDamage, int critMultiplier)
         {
-            if (context.NumAffixes > 0)
-            {
-                var affixDB = context.AffixDatabase;
-                var affixes = affixDB.WeaponAffixes;
-                var prefixes = affixes.Affixes.Where(aff => aff.Location == AffixLocation.Prefix).ToArray();
-                var suffixes = affixes.Affixes.Where(aff => aff.Location == AffixLocation.Suffix).ToArray();
-                List<Affix> chosenAffixes = new List<Affix>();
-                Affix prefix = ChooseRandomAffix(prefixes);
-                Affix suffix = ChooseRandomAffix(suffixes);
-                chosenAffixes.Add(prefix);
-                chosenAffixes.Add(suffix);
-                return new Weapon(this, string.Format("{0} {1} of {2}", prefix.Name, Name, suffix.Name), chosenAffixes);
-            }
-            else
-            {
-                return new Weapon(this, Name, Enumerable.Empty<Affix>());
-            }
+            return string.Format(ItemDescriptionFormat, minDamage, maxDamage, critMultiplier);
         }
 
-        Affix ChooseRandomAffix(AffixDefinition[] affixDefinitions)
+        protected override void OnStartBuilding()
         {
-            return new Affix(ChooseRandomAffixDefinition(affixDefinitions), GetRandomQuality());
+            tempEnhancement.Clear();
         }
 
-        AffixDefinition ChooseRandomAffixDefinition(AffixDefinition[] affixes)
+        protected override bool IsApplicableToItem(AttributeAffix affix)
         {
-            return affixes[UnityEngine.Random.Range(0, affixes.Length)];
+            return WeaponEnhancement.IsWeaponAttribute(affix.Attribute);
         }
 
-        float GetRandomQuality()
+        protected override void ApplyToItem(AttributeAffix affix, QualityRoll quality)
         {
-            return UnityEngine.Random.Range(0f, 1f);
+            Assert.IsTrue(IsApplicableToItem(affix));
+            MagnitudeRange magnitudeRange = affix.Range.Value;
+            int magnitude = magnitudeRange.Interpolate(quality);
+            tempEnhancement.ApplyWeaponAttribute(affix.Attribute, affix.Priority, magnitude);
+        }
+
+        protected override Item FinishBuilding(List<Affix> affixes, string name)
+        {
+            return new Weapon(this, name, affixes, tempEnhancement);
         }
     } 
 }

@@ -12,7 +12,8 @@ namespace AKSaigyouji.Roguelike
         public abstract Sprite Icon { get; }
         public abstract InventorySlot Slot { get; }
         public abstract string Name { get; } 
-        public abstract string DisplayString { get; }
+        public abstract string ItemDescription { get; }
+        public abstract string ItemBonuses { get; }
         
         // The divison of item into equippable (weapon, armor), and non-equippable items (potion, quest item)
         // is not ideal. It might be better to splinter the latter out of the item hierarchy, and perhaps to use
@@ -27,7 +28,7 @@ namespace AKSaigyouji.Roguelike
         public abstract Item Equip(IInventory inventory);
 
         /// <summary>
-        /// Applies the item's effects (i.e. affixes and other special affects) to the player.
+        /// Applies the item's effects (i.e. affixes and other special effects) to the player.
         /// </summary>
         public abstract void ApplyEffects(IEquipContext context);
 
@@ -43,6 +44,21 @@ namespace AKSaigyouji.Roguelike
         public override InventorySlot Slot { get { return template.Slot; } }
         public override Sprite Icon { get { return template.Icon; } }
         public override string Name { get { return name; } }
+
+        public override string ItemBonuses
+        {
+            get
+            {
+                if (affixes == null)
+                {
+                    return string.Empty;
+                }
+                else
+                {
+                    return string.Join("\n", affixes.Select(aff => aff.Description).ToArray());
+                }
+            }
+        }
 
         [SerializeField] List<Affix> affixes;
         [SerializeField] string name;

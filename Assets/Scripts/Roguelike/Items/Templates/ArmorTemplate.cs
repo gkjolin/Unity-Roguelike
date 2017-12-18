@@ -12,16 +12,35 @@ namespace AKSaigyouji.Roguelike
 
         public override InventorySlot Slot { get { return InventorySlot.BodyArmor; } }
 
+        protected override string ItemDescriptionFormat { get { return "{0} Armor"; } }
+
         [SerializeField] int armor;
 
-        public override Item Build(ItemBuildContext context)
+        ArmorEnhancement armorEnhancement = new ArmorEnhancement();
+
+        public string BuildDescription(int armor)
         {
-            return BuildArmor(Name);
+            return string.Format(ItemDescriptionFormat, armor);
         }
 
-        public BodyArmor BuildArmor(string name)
+        protected override void OnStartBuilding()
         {
-            return new BodyArmor(this, name, Enumerable.Empty<Affix>());
+            armorEnhancement.Clear();
+        }
+
+        protected override bool IsApplicableToItem(AttributeAffix affix)
+        {
+            return ArmorEnhancement.IsArmorAttribute(affix.Attribute);
+        }
+
+        protected override void ApplyToItem(AttributeAffix affix, QualityRoll quality)
+        {
+            armorEnhancement.ApplyArmorAttribute(affix.Attribute, affix.Priority, affix.Range.Value.Interpolate(quality));
+        }
+
+        protected override Item FinishBuilding(List<Affix> affixes, string name)
+        {
+            return new BodyArmor(this, name, affixes, armorEnhancement);
         }
     } 
 }

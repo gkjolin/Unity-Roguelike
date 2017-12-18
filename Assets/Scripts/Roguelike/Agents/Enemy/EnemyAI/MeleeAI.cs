@@ -3,7 +3,6 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
-using AKSaigyouji.Maps;
 
 namespace AKSaigyouji.Roguelike
 { 
@@ -14,57 +13,68 @@ namespace AKSaigyouji.Roguelike
         [Tooltip("Will pursue the target as long as it remains in this range.")]
         [SerializeField] int hostileRange = 10;
        
-        [SerializeField] float moveSpeed = 6;
-        [SerializeField] float attackSpeed = 12;
+        [SerializeField] int moveSpeed = 40;
+        [SerializeField] int attackSpeed = 25;
 
-        float IdleSpeed { get { return moveSpeed / 2; } } // idling should be relatively fast.
+        int IdleSpeed { get { return moveSpeed * 2; } } // idling should be relatively fast.
 
         readonly List<Coord> path = new List<Coord>();
-        Coord lastTargetCoords = new Coord(-1, -1); // Used to avoid recalculating path if target hasn't moved.
+        Coord? lastTargetCoords = null;
 
-        readonly Coord INVALID_POSITION = new Coord(-1, -1);
+        // The path should only be empty if we have yet to calculate it, or if we calculated it and no path 
+        // to the target was found. 
+        bool FoundPathToTarget { get { return path.Count > 0; } }
+
+        Coord NextMove
+        {
+            get
+            {
+                if (!FoundPathToTarget) throw new InvalidOperationException("Can't extract next move without path.");
+                return path[path.Count - 1];
+            }
+        }
 
         protected override double Act(Transform target)
         {
             Coord targetCoords = (Coord)target.position;
+            int speedOfChosenAction;
             if (IsTargetInAggroRange(targetCoords))
             {
-                if (targetCoords != lastTargetCoords)
+                if (HasTargetMoved(targetCoords))
                 {
                     UpdatePathTo(targetCoords);
                 }
-                if (IsPathValid) 
+                if (FoundPathToTarget) 
                 {
                     if (NextMove == targetCoords)
                     {
                         Attack(target);
-                        return attackSpeed;
+                        speedOfChosenAction = attackSpeed;
                     }
                     else
                     {
                         bool moved = TryMoveTo(NextMove);
-                        return moved ? moveSpeed : IdleSpeed;
+                        speedOfChosenAction = moved ? moveSpeed : IdleSpeed;
                     }
                 }
-                else // if we don't have a path to the player, idle
+                else // if we don't have a path to the target, idle
                 {
                     Idle();
-                    return IdleSpeed;
+                    speedOfChosenAction = IdleSpeed;
                 }
             }
-            else // if player is not in range, idle
+            else // if target is not in range, idle
             {
                 Idle();
-                return IdleSpeed;
+                speedOfChosenAction = IdleSpeed;
             }
+            return GameTime.ComputeTimeTaken(speedOfChosenAction);
         }
 
-        // The path should only be empty if we have yet to calculate it, or if we calculated it and no path 
-        // to the target was found. 
-        bool IsPathValid { get { return path.Count > 0; } }
-
-        // Note: we can only get the next move if the path is valid
-        Coord NextMove { get { return path[path.Count - 1]; } }
+        bool HasTargetMoved(Coord target)
+        {
+            return !lastTargetCoords.HasValue || lastTargetCoords.Value != target;
+        }
 
         void UpdatePathTo(Coord target)
         {
@@ -82,12 +92,12 @@ namespace AKSaigyouji.Roguelike
         /// </summary>
         void InvalidatePath()
         {
-            lastTargetCoords = INVALID_POSITION;
+            lastTargetCoords = null;
         }
 
         void Idle()
         {
-            lastTargetCoords = INVALID_POSITION;
+            InvalidatePath();
         }
 
         void Attack(Transform target)
@@ -115,16 +125,17 @@ namespace AKSaigyouji.Roguelike
                 Coord alternatePositionB;
                 if (destination.y == position.y) // destination is horizontally adjacent to enemy position
                 {
-                    alternatePositionA = new Coord(destination.x, destination.y - 1);
-                    alternatePositionB = new Coord(destination.x, destination.y + 1);
+                    alternatePositionA = destination.DownShift;
+                    alternatePositionB = destination.UpShift;
                 }
                 else if (destination.x == position.x) // destination is vertically adjacent to enemy position
                 {
-                    alternatePositionA = new Coord(destination.x - 1, destination.y);
-                    alternatePositionB = new Coord(destination.x + 1, destination.y);
+                    alternatePositionA = destination.LeftShift;
+                    alternatePositionB = destination.RightShift;
                 }
                 else // destination is diagonally adjacent to enemy position
                 {
+                    // there are four cases, but they're all handled by using the correct player coordinate
                     alternatePositionA = new Coord(destination.x, position.y);
                     alternatePositionB = new Coord(position.x, destination.y);
                 }

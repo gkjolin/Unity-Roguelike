@@ -1,10 +1,14 @@
-﻿using System;
+﻿/* Player controls work in three layers: Input -> Controller -> Components. The controller provides a simplified
+ * interface for player behaviour in the form of a set of commands. It has no knowledge on where these commands
+ * are coming from, allowing e.g. to have input from a keyboard or from an AI, or even a memorized list (for replay
+ * functionality).*/
+
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Assertions;
-using AKSaigyouji.Maps;
 
 namespace AKSaigyouji.Roguelike
 {
@@ -17,9 +21,9 @@ namespace AKSaigyouji.Roguelike
         [SerializeField] Inventory inventory;
         [SerializeField] MapFilter mapFilter;
 
-        float MoveSpeed { get { return stats.Speed; } }
-        float AttackSpeed { get { return 2 * stats.Speed; } }
-        float PickupSpeed { get { return stats.Speed / 2; } }
+        int MoveSpeed { get { return stats.GetAttribute(Attribute.MoveSpeed); } }
+        int AttackSpeed { get { return stats.GetAttribute(Attribute.AttackSpeed); } }
+        int PickupSpeed { get { return stats.GetAttribute(Attribute.PickupSpeed); } }
 
         IMap Map { get { return mapFilter.Map; } }
 
@@ -53,7 +57,7 @@ namespace AKSaigyouji.Roguelike
         {
             if (inventory.TryPickupItem())
             {
-                time.Increase(PickupSpeed);
+                time.IncreaseBasedOnSpeed(PickupSpeed);
             }
         }
 
@@ -84,13 +88,13 @@ namespace AKSaigyouji.Roguelike
                     if (target != null) // that something can be attacked
                     {
                         attack.Attack(target);
-                        time.Increase(AttackSpeed);
+                        time.IncreaseBasedOnSpeed(AttackSpeed);
                     }
                 }
                 else
                 {
                     transform.position = (Vector2)coord;
-                    time.Increase(MoveSpeed);
+                    time.IncreaseBasedOnSpeed(MoveSpeed);
                 }
             }
         }

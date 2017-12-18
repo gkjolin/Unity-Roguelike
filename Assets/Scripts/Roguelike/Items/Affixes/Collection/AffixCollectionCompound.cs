@@ -10,7 +10,7 @@ namespace AKSaigyouji.Roguelike
     /// <summary>
     /// Affix collection that works by aggregating other collections recursively.
     /// </summary>
-    [CreateAssetMenu(fileName = "Affix Collection", menuName = "AKSaigyouji/Affixes/Compound Collection")]
+    [CreateAssetMenu(fileName = "Affix Collection", menuName = "AKSaigyouji/Affixes/Collection (Compound)", order = 5)]
     public sealed class AffixCollectionCompound : AffixCollection
     {
         public override int Count
@@ -26,24 +26,6 @@ namespace AKSaigyouji.Roguelike
             get
             {
                 return affixCollections.SelectMany(col => col.Affixes);
-            }
-        }
-        public override AffixDefinition this[int index]
-        {
-            get
-            {
-                foreach (var collection in affixCollections)
-                {
-                    if (index < collection.Count)
-                    {
-                        return collection[index];
-                    }
-                    else
-                    {
-                        index -= collection.Count;
-                    }
-                }
-                throw new ArgumentOutOfRangeException("index");
             }
         }
 

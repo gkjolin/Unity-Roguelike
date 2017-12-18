@@ -7,21 +7,25 @@ namespace AKSaigyouji.Roguelike
     [Serializable]
     public class Weapon : Item<WeaponTemplate>
     {
-        public int MinDamage { get { return template.MinDamage; } }
-        public int MaxDamage { get { return template.MaxDamage; } }
-        public int CritMultiplier { get { return template.CritMultiplier; } }
+        public int MinDamage { get { return minDamage; } }
+        public int MaxDamage { get { return maxDamage; } }
+        public int CritMultiplier { get { return critMultiplier; } }
 
-        public override string DisplayString { get { return displayString; } }
+        public override string ItemDescription
+        {
+            get { return template.BuildDescription(MinDamage, MaxDamage, CritMultiplier); }
+        }
 
-        readonly string displayString;
+        readonly int minDamage;
+        readonly int maxDamage;
+        readonly int critMultiplier;
 
-        const string displayStringFormat = "{0}-{1} damage"
-            + "\n" + "x{2} crit multiplier";
-
-        public Weapon(WeaponTemplate template, string name, IEnumerable<Affix> affixes) 
+        public Weapon(WeaponTemplate template, string name, IEnumerable<Affix> affixes, WeaponEnhancement enhancer) 
             : base(template, name, affixes)
         {
-            displayString = string.Format(displayStringFormat, MinDamage, MaxDamage, CritMultiplier);
+            minDamage = enhancer.EnhanceMinDamage(template.MinDamage);
+            maxDamage = enhancer.EnhanceMaxDamage(template.MaxDamage);
+            critMultiplier = enhancer.EnhanceCrit(template.CritMultiplier);
         }
 
         public override Item Equip(IInventory inventory)

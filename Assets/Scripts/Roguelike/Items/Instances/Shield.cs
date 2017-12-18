@@ -1,21 +1,26 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace AKSaigyouji.Roguelike
 {
     [Serializable]
     public class Shield : Item<ShieldTemplate>
     {
-        public int Armor { get { return template.Armor; } }
+        public int Armor { get { return armor; } }
 
-        public override string DisplayString { get { return displayString; } }
-
-        readonly string displayString;
-
-        public Shield(ShieldTemplate template, string name, IEnumerable<Affix> affixes) : base(template, name, affixes)
+        public override string ItemDescription
         {
-            displayString = string.Format("{0} armor", Armor);
+            get { return template.BuildDescription(Armor); }
+        }
+
+        [SerializeField] int armor;
+
+        public Shield(ShieldTemplate template, string name, IEnumerable<Affix> affixes, ArmorEnhancement armorEnhancement) 
+            : base(template, name, affixes)
+        {
+            armor = armorEnhancement.EnhanceArmor(template.Armor);
         }
 
         public override Item Equip(IInventory inventory)

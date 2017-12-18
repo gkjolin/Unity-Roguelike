@@ -1,4 +1,8 @@
-﻿using UnityEngine;
+﻿/* This can be useful to expose data in the inspector which shouldn't be tampered with, usually for visualization 
+ or diagnostic purposes. Unfortunately there does not seem to be a way to get around the limitation of overriding
+ any custom property drawers on the type affected by this attribute.*/
+
+using UnityEngine;
 using UnityEditor;
 using System.Collections;
 
@@ -9,7 +13,7 @@ namespace AKSaigyouji.Roguelike
     {
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            return EditorGUI.GetPropertyHeight(property) + 200;
+            return EditorGUI.GetPropertyHeight(property);
         }
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)

@@ -11,16 +11,21 @@ namespace AKSaigyouji.Roguelike
         public override InventorySlot Slot { get { return InventorySlot.NotEquippable; } }
         public int HealthRestored { get { return healthRestored; } }
 
-        [SerializeField] int healthRestored;
-
-        public override Item Build(ItemBuildContext context)
+        protected override string ItemDescriptionFormat
         {
-            return new Potion(this, name);
+            get { return "Restores {0} Health"; }
         }
 
-        void OnValidate()
+        [SerializeField] int healthRestored;
+
+        public string BuildDescription(int healthRestored)
         {
-            healthRestored = Mathf.Max(0, healthRestored);
+            return string.Format(ItemDescriptionFormat, healthRestored);
+        }
+
+        protected override Item FinishBuilding(List<Affix> affixes, string name)
+        {
+            return new Potion(this, name);
         }
     }
 }

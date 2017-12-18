@@ -14,7 +14,7 @@ namespace AKSaigyouji.Roguelike
         [SerializeField] PlayerStats stats;
         [SerializeField] Inventory inventory;
 
-        int Armor { get { return stats.Armor + inventory.BodyArmor.Armor + inventory.Shield.Armor; } }
+        int Armor { get { return inventory.BodyArmor.Armor + inventory.Shield.Armor; } }
         int Health { get { return stats.CurrentHealth; } }
         
         const string missText = "Miss!";
@@ -34,7 +34,7 @@ namespace AKSaigyouji.Roguelike
 
         public void Attack(int damageRoll, string attackText)
         {
-            if (Health < 1) // already dead, do nothing
+            if (Health <= 0) // already dead, do nothing
             {
                 return;
             }
@@ -52,6 +52,7 @@ namespace AKSaigyouji.Roguelike
             Logger.LogFormat("{0} {1}", attackText, attackResultText);
         }
 
+        // this belongs on another class, and can be wired up with a unityevent
         void Lose()
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
