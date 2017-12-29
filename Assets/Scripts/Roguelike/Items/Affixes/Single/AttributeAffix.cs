@@ -11,11 +11,12 @@ namespace AKSaigyouji.Roguelike
     public sealed class AttributeAffix : AffixDefinition
     {
         public Attribute Attribute { get { return attribute; } }
-        public EnhancementPriority Priority { get { return priority; } }
+        public EnhancementOperation Priority { get { return priority; } }
         public MagnitudeRangeAsset Range { get { return rangeVariable; } }
+        public override int Order { get { return (int)attribute; } }
 
         [SerializeField] Attribute attribute;
-        [SerializeField] EnhancementPriority priority;
+        [SerializeField] EnhancementOperation priority;
         [SerializeField] MagnitudeRangeAsset rangeVariable;
 
         public override string GetAffixDescription(QualityRoll quality)

@@ -1,7 +1,7 @@
 ﻿/* The attribute system is fairly complex, with buffs and penalties coming in from various sources at various times.
  The order in which the buffs and penalties will affect the end values greatly, so it's useful to be able to aggregate
  the various enhancements for a stat in a single place, and then apply them at once, in the correct order. This class
- allows for such an aggregation, in a relatively light-weight fashion. */
+ encapsulates such aggregations, in a relatively light-weight fashion. */
 
 using System;
 using System.Collections;
@@ -19,8 +19,14 @@ namespace AKSaigyouji.Roguelike
     /// </summary>
     public sealed class StatBooster
     {
-        // An option I considered was to make StatBooster either an EnumDictionary or have it wrap one. 
-        // This would simplify the class, but with a considerably larger footprint.
+        public enum Priority { First = 1, Second = 2, Final = 200}
+
+        // could have used a collection, but this is a lot more explicit (makes the class easier to understand)
+        // note that the order of these fields is also the order of the respective operations
+        // the idea behind the tiers is that the first tier is for attributes on items, the second is for 
+        // skills, spells/curses and similar effects, while the final tier is for environmental effects,
+        // such as the global reduction to resistances from higher difficulties in Diablo 2, and possibly also
+        // for shrines (though shrines might be a good candidate for spell-like effects). 
         [SerializeField] int firstAdditive;
         [SerializeField] int firstMultiplicative;
         [SerializeField] int secondAdditive;
@@ -29,39 +35,56 @@ namespace AKSaigyouji.Roguelike
         [SerializeField] int finalMultiplicative;
         [SerializeField] int overrideValue;
 
-        [SerializeField] bool isOverrideSet; // 0 is a default override value, so need to check separately 
+        [SerializeField] bool isOverrideSet;
 
         /// <summary>
         /// Add an enhancement to this statbooster. Priority must correspond to one of the valid stat boosts. 
         /// </summary>
-        public void AddBoost(EnhancementPriority priority, int magnitude)
+        public void AddBoost(EnhancementOperation operation, int magnitude, Priority priority)
         {
-            switch (priority)
+            bool first = priority == Priority.First;
+            bool second = priority == Priority.Second;
+            bool final = priority == Priority.Final;
+
+            bool add = operation == EnhancementOperation.Additive;
+            bool mult = operation == EnhancementOperation.Multiplicative;
+            bool overridden = operation == EnhancementOperation.Override;
+
+            Assert.IsTrue(first || second || final);
+            Assert.IsTrue(add || mult || overridden);
+
+            if (first && add)
             {
-                case EnhancementPriority.FirstAdditive:
-                    firstAdditive += magnitude;
-                    break;
-                case EnhancementPriority.FirstMultiplicative:
-                    firstMultiplicative += magnitude;
-                    break;
-                case EnhancementPriority.SecondAdditive:
-                    secondAdditive += magnitude;
-                    break;
-                case EnhancementPriority.SecondMultiplicative:
-                    secondMultiplicative += magnitude;
-                    break;
-                case EnhancementPriority.FinalAdditive:
-                    finalAdditive += magnitude;
-                    break;
-                case EnhancementPriority.FinalMultiplicative:
-                    finalMultiplicative += magnitude;
-                    break;
-                case EnhancementPriority.Override:
-                    isOverrideSet = true;
-                    overrideValue = magnitude;
-                    break;
-                default:
-                    throw new System.ComponentModel.InvalidEnumArgumentException();
+                firstAdditive += magnitude;
+            }
+            else if (first && mult)
+            {
+                firstMultiplicative += magnitude;
+            }
+            else if (second && add)
+            {
+                secondAdditive += magnitude;
+            }
+            else if (second && mult)
+            {
+                secondMultiplicative += magnitude;
+            }
+            else if (final && add)
+            {
+                finalAdditive += magnitude;
+            }
+            else if (final && mult)
+            {
+                finalMultiplicative += magnitude;
+            }
+            else if (overridden)
+            {
+                overrideValue = isOverrideSet ? Mathf.Min(overrideValue, magnitude) : magnitude;
+                isOverrideSet = true;
+            }
+            else
+            {
+                // In the editor, the assertion above will fail. At run-time, the unidentified boost is skipped.
             }
         }
 

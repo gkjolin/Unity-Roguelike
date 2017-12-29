@@ -38,7 +38,7 @@ namespace AKSaigyouji.Roguelike
             armorEnhancement.ApplyArmorAttribute(affix.Attribute, affix.Priority, affix.Range.Value.Interpolate(quality));
         }
 
-        protected override Item FinishBuilding(List<Affix> affixes, string name)
+        protected override Item OnFinishBuilding(List<Affix> affixes, string name)
         {
             return new BodyArmor(this, name, affixes, armorEnhancement);
         }

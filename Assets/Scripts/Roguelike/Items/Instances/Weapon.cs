@@ -13,7 +13,7 @@ namespace AKSaigyouji.Roguelike
 
         public override string ItemDescription
         {
-            get { return template.BuildDescription(MinDamage, MaxDamage, CritMultiplier); }
+            get { return Template.BuildDescription(MinDamage, MaxDamage, CritMultiplier); }
         }
 
         readonly int minDamage;

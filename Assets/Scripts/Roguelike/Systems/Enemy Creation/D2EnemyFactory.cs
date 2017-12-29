@@ -1,4 +1,4 @@
-﻿/* This is a factory class for all enemies, handling most of the wiring that needs to happen between components
+﻿/* This is a factory class for all enemies, handling the wiring that needs to happen between components
  * at run-time. Instead of having each component on enemies use GetComponent/FindComponent/etc, this class injects
  * those dependencies into the components. This removes a lot of spaghetti logic from the components and makes
  * diagnosing dependency issues a lot easier.
@@ -21,8 +21,7 @@ namespace AKSaigyouji.Roguelike
         [SerializeField] Ground ground;
         [SerializeField] NameGenerator nameGenerator;
         [SerializeField] MapFilter mapFilter;
-
-        IMap Map { get { return mapFilter.Map; } }
+        [SerializeField] AttackResolver attackResolver;
 
         ChampionBuff[] championBuffs = new ChampionBuff[]
         {
@@ -35,6 +34,8 @@ namespace AKSaigyouji.Roguelike
         // so this saves a lot of memory but prevents multi-threaded AI.
         IPathFinder pathFinder = new DijkstraPathFinder();
 
+        IMap Map => mapFilter.Map;
+
         void Start()
         {
             Assert.IsNotNull(player);
@@ -42,17 +43,19 @@ namespace AKSaigyouji.Roguelike
             Assert.IsNotNull(ground);
             Assert.IsNotNull(nameGenerator);
             Assert.IsNotNull(mapFilter);
+            Assert.IsNotNull(attackResolver);
         }
 
+        // A lot of this is hard-coded for expedience. It will be revisited and redesigned in the future. 
         public GameObject Build(Coord location, GameObject prefab)
         {
-            return Instantiate(location, prefab, prefab.name);
+            return BuildEnemy(location, prefab, prefab.name);
         }
 
         public GameObject BuildEliteLeader(Coord location, GameObject prefab)
         {
             string name = nameGenerator.BuildName();
-            GameObject enemy = Instantiate(location, prefab, name, eliteBuff);
+            GameObject enemy = BuildEnemy(location, prefab, name, eliteBuff);
             enemy.GetComponent<SpriteRenderer>().color = new Color(1f, 1f, 0.8f);
             return enemy;
         }
@@ -61,7 +64,7 @@ namespace AKSaigyouji.Roguelike
         {
             // currently the minions have no special relationship to the leader, but in the future they should
             string name = "Minion " + prefab.name;
-            GameObject enemy = Instantiate(location, prefab, name, eliteBuff);
+            GameObject enemy = BuildEnemy(location, prefab, name, eliteBuff);
             enemy.GetComponent<SpriteRenderer>().color = new Color(1f, 1f, 0.8f);
             return enemy;
         }
@@ -70,12 +73,12 @@ namespace AKSaigyouji.Roguelike
         {
             ChampionBuff championBuff = championBuffs[UnityEngine.Random.Range(0, championBuffs.Length)];
             string name = string.Format("{0} {1}", championBuff.DisplayName, prefab.name);
-            GameObject enemy = Instantiate(location, prefab, name, championBuff);
+            GameObject enemy = BuildEnemy(location, prefab, name, championBuff);
             enemy.GetComponent<SpriteRenderer>().color = new Color(135f / 255, 206f / 255, 235f / 255);
             return enemy;
         }
 
-        GameObject Instantiate(Coord location, GameObject prefab, string name, IEnemyEnhancement enhancement = null)
+        GameObject BuildEnemy(Coord location, GameObject prefab, string name, IEnemyEnhancement enhancement = null)
         {
             GameObject enemyGO = Instantiate(prefab);
             enemyGO.name = name;
@@ -83,14 +86,14 @@ namespace AKSaigyouji.Roguelike
             enemyGO.transform.parent = transform;
 
             var ai                = enemyGO.GetComponent<EnemyAI>();
-            var body              = enemyGO.GetComponent<EnemyBody>();
+            var body              = enemyGO.AddComponent<EnemyBody>();
             var enemyStats        = enemyGO.GetComponent<EnemyStats>();
             var itemsOnDeath      = enemyGO.GetComponent<OnDeathDropItems>();
             var experienceOnDeath = enemyGO.GetComponent<OnDeathExperience>();
 
             var playerStats = player.GetComponent<PlayerStats>();
 
-            ai.Initialize(Map, player, enemyStats, pathFinder);
+            ai.Initialize(Map, player, enemyStats, pathFinder, attackResolver);
             body.Initialize(enemyStats);
             itemsOnDeath.Initialize(itemFactory, ground);
             experienceOnDeath.Initialize(playerStats);

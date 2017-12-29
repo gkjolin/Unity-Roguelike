@@ -46,7 +46,7 @@ namespace AKSaigyouji.Roguelike
             tempEnhancement.ApplyWeaponAttribute(affix.Attribute, affix.Priority, magnitude);
         }
 
-        protected override Item FinishBuilding(List<Affix> affixes, string name)
+        protected override Item OnFinishBuilding(List<Affix> affixes, string name)
         {
             return new Weapon(this, name, affixes, tempEnhancement);
         }

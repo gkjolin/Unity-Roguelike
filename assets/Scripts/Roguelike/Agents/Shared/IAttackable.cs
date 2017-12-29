@@ -10,7 +10,7 @@ namespace AKSaigyouji.Roguelike
     /// </summary>
     public interface IAttackable
     {
-        void Attack(int damageRoll, string attackText);
-        string Name { get; }
+        Defense GetDefense();
+        void Attack(AttackResult result);
     } 
 }

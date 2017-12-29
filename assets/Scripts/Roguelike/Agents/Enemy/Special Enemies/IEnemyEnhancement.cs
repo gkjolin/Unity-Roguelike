@@ -17,7 +17,6 @@ namespace AKSaigyouji.Roguelike
         // or if we wish to compose/decorate/adapt this interface a lot. 
         int EnhanceMaxHealth(int maxHealth);
         int EnhanceDefense(int defense);
-        int EnhanceAccuracy(int accuracy);
         int EnhanceDamage(int damage);
         float EnhanceMoveSpeed(float speed);
         float EnhanceAttackSpeed(float speed);

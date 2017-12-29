@@ -19,16 +19,12 @@ namespace AKSaigyouji.Roguelike
             return attribute == Attribute.Armor;
         }
 
-        public void ApplyArmorAttribute(Attribute attribute, EnhancementPriority priority, int value)
+        public void ApplyArmorAttribute(Attribute attribute, EnhancementOperation priority, int value)
         {
-            Assert.IsTrue(priority == EnhancementPriority.FirstAdditive
-                       || priority == EnhancementPriority.FirstMultiplicative
-                       || priority == EnhancementPriority.Override,
-                       "Item enhancements must be first-priority, since they always precede other effects.");
             Assert.IsTrue(IsArmorAttribute(attribute));
             if (attribute == Attribute.Armor)
             {
-                armor.AddBoost(priority, value);
+                armor.AddBoost(priority, value, StatBooster.Priority.First);
             }
         }
 

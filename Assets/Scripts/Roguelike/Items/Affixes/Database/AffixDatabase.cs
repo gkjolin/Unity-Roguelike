@@ -18,9 +18,26 @@ namespace AKSaigyouji.Roguelike
         public AffixCollection GeneralAffixes { get { return generalAffixes; } }
         [SerializeField] AffixCollection generalAffixes;
 
+        public AffixCollection ArmorAffixes { get { return armorAffixes; } }
+        [SerializeField] AffixCollection armorAffixes;
+
+        public AffixCollection WeaponAffixes { get { return weaponAffixes; } }
+        [SerializeField] AffixCollection weaponAffixes;
+
         // reusable lists for holding collections of affixes
         List<AffixDefinition> tempDefinitionsA = new List<AffixDefinition>();
         List<AffixDefinition> tempDefinitionsB = new List<AffixDefinition>();
+
+        void Awake()
+        {
+            Assert.IsNotNull(generalAffixes);
+            Assert.IsNotNull(weaponAffixes);
+            Assert.IsNotNull(armorAffixes);
+
+            Assert.IsTrue(generalAffixes.Affixes.All(aff => aff != null));
+            Assert.IsTrue(armorAffixes.Affixes.All(aff => aff != null));
+            Assert.IsTrue(weaponAffixes.Affixes.All(aff => aff != null));
+        }
 
         public List<AffixDefinition> PickRandomAffixes(AffixCollection collection, int numPrefixes, int numSuffixes)
         {
@@ -28,32 +45,22 @@ namespace AKSaigyouji.Roguelike
             if (numSuffixes < 0) throw new ArgumentOutOfRangeException("Cannot have a negative number of suffixes.");
             if (numPrefixes + numSuffixes > 50) throw new ArgumentOutOfRangeException("Cannot have 50+ affixes.");
 
-            Assert.IsTrue(tempDefinitionsA.Count == 0);
-            Assert.IsTrue(tempDefinitionsB.Count == 0);
-
-            var allAffixes = collection.Affixes;
             var prefixes = tempDefinitionsA;
             var suffixes = tempDefinitionsB;
 
-            foreach (var affix in allAffixes)
-            {
-                if (affix.IsPrefix)
-                {
-                    prefixes.Add(affix);
-                }
-                else
-                {
-                    suffixes.Add(affix);
-                }
-            }
+            prefixes.Clear();
+            suffixes.Clear();
 
-            Assert.IsTrue(numPrefixes <= prefixes.Count);
-            Assert.IsTrue(numSuffixes <= suffixes.Count);
+            foreach (AffixDefinition affix in collection.Affixes)
+            {
+                var affixList = affix.IsPrefix ? prefixes : suffixes;
+                affixList.Add(affix);
+            }
 
             var chosenAffixes = new List<AffixDefinition>(numPrefixes + numSuffixes);
 
-            SelectRandomAffixes(prefixes, numPrefixes, chosenAffixes);
-            SelectRandomAffixes(suffixes, numSuffixes, chosenAffixes);
+            SelectRandomAffixes(prefixes, Mathf.Min(prefixes.Count, numPrefixes), chosenAffixes);
+            SelectRandomAffixes(suffixes, Mathf.Min(suffixes.Count, numSuffixes), chosenAffixes);
 
             prefixes.Clear();
             suffixes.Clear();

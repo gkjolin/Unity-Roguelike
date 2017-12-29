@@ -14,13 +14,8 @@ namespace AKSaigyouji.Roguelike
         [SerializeField] PlayerStats stats;
         [SerializeField] Inventory inventory;
 
-        int Armor { get { return inventory.BodyArmor.Armor + inventory.Shield.Armor; } }
-        int Health { get { return stats.CurrentHealth; } }
+        int ItemArmor { get { return inventory.BodyArmor.Armor + inventory.Shield.Armor; } }
         
-        const string missText = "Miss!";
-        const string strikeTextFormat = "{0} damage dealt. {1} health remaining.";
-        const string deathTextFormat = "{0} damage dealt. You are fatally wounded!";
-
         void Start()
         {
             Assert.IsNotNull(stats);
@@ -29,30 +24,54 @@ namespace AKSaigyouji.Roguelike
 
         public void Heal(int amount)
         {
+            Assert.IsTrue(amount >= 0);
             stats.ChangeHealth(amount);
         }
 
-        public void Attack(int damageRoll, string attackText)
+        public void Damage(int amount)
         {
-            if (Health <= 0) // already dead, do nothing
-            {
-                return;
-            }
-            string attackResultText;
-            stats.ChangeHealth(-damageRoll);
-            if (Health < 1)
-            {
-                attackResultText = string.Format(deathTextFormat, damageRoll);
-                Lose();
-            }
-            else
-            {
-                attackResultText = string.Format(strikeTextFormat, damageRoll, Health);
-            }
-            Logger.LogFormat("{0} {1}", attackText, attackResultText);
+            Assert.IsTrue(amount >= 0);
+            stats.ChangeHealth(-amount);
         }
 
-        // this belongs on another class, and can be wired up with a unityevent
+        public void Attack(AttackResult attack)
+        {
+            if (attack.IsSuccess)
+            {
+                Damage(attack.TotalDamage);
+                Heal(attack.TotalHealing);
+            }
+        }
+
+        public Defense GetDefense()
+        {
+            var defense = new Defense()
+            {
+                NameOfDefender = name,
+
+                Armor = stats.GetAttribute(Attribute.Armor) + ItemArmor,
+                CurrentHealth = stats.CurrentHealth,
+                MaxHealth = stats.GetAttribute(Attribute.Health),
+
+                FireResistance = stats.GetAttribute(Attribute.FireResistance),
+                ColdResistance = stats.GetAttribute(Attribute.ColdResistance),
+                LightningResistance = stats.GetAttribute(Attribute.LightningResistance),
+                PoisonResistance = stats.GetAttribute(Attribute.PoisonResistance),
+
+                FireAbsorption = 0,
+                ColdAbsorption = 0,
+                LightningAbsorption = 0,
+                PoisonAbsoprtion = 0,
+
+                PhysicalDamageSubtraction = 0,
+                NonPhysicalDamageSubstraction = 0,
+
+                PhysicalEvasion = 0,
+                MagicalEvasion = 0,
+            };
+            return defense;
+        }
+
         void Lose()
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);

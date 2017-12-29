@@ -85,7 +85,11 @@ namespace AKSaigyouji.Roguelike
         {
             foreach (AttributeEnhancement enhancement in equipContext.Enhancements)
             {
-                statBoosters[enhancement.Attribute].AddBoost(enhancement.Priority, enhancement.Magnitude);
+                Attribute attribute = enhancement.Attribute;
+                EnhancementOperation operation = enhancement.Operation;
+                int value = enhancement.Magnitude;
+
+                statBoosters[attribute].AddBoost(operation, value, StatBooster.Priority.First);
             }
         }
 

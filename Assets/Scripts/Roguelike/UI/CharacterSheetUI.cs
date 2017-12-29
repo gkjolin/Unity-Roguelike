@@ -17,6 +17,8 @@ namespace AKSaigyouji.Roguelike
 
         const string DISPLAY_FORMAT = "{0}: {1}";
 
+        readonly StringBuilder sb = new StringBuilder();
+
         void Start()
         {
             Assert.IsNotNull(characterSheet);
@@ -38,7 +40,12 @@ namespace AKSaigyouji.Roguelike
 
         void UpdateCharacterStats()
         {
-            var sb = new StringBuilder();
+            // this is a temporary hard-coded UI for the character stats - all the strings being built here contribute
+            // to a lot of garbage being made every time the character sheet is open. This can be substantially mitigated
+            // by generating all the fixed components of the UI once (namely, all the labels) and only updating
+            // the numbers themselves. The UI may eventually also be replaced with something hand-drawn. Finally, 
+            // it may be a significant optimization to update the character stats in response to something changing
+            // the stats. Nonetheless, these changes are a low priority. 
             sb.AppendLine(string.Format("Level: {0}", stats.Level));
             sb.AppendLine(string.Format("Experience: {0}/{1}", stats.Experience, stats.ExperienceToNextLevel));
             sb.AppendLine();
@@ -54,6 +61,7 @@ namespace AKSaigyouji.Roguelike
             sb.AppendLine(DisplayString(Attribute.LightningResistance));
             sb.AppendLine(DisplayString(Attribute.PoisonResistance));
             characterSheet.text = sb.ToString();
+            sb.Length = 0;
         }
 
         string DisplayString(Attribute attribute)

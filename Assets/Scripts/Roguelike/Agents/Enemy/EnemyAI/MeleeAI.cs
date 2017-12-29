@@ -103,8 +103,14 @@ namespace AKSaigyouji.Roguelike
         void Attack(Transform target)
         {
             IAttackable targetBody = target.GetComponent<IAttackable>();
-            int damage = UnityEngine.Random.Range(Stats.MinDamage, Stats.MaxDamage);
-            targetBody.Attack(damage, name + " attacks.");
+            if (targetBody == null)
+            {
+                throw new ArgumentException("Target cannot be attacked.");
+            }
+            Attack attack = BuildAttack();
+            Defense targetDefense = targetBody.GetDefense();
+            AttackResult result = AttackResolver.ResolvePhysicalAttack(attack, targetDefense);
+            targetBody.Attack(result);
         }
 
         bool TryMoveTo(Coord destination)

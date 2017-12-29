@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-namespace AKSaigyouji.Modules.MapGeneration
+namespace AKSaigyouji.Roguelike
 {
     public sealed class SpritePostProcessor : AssetPostprocessor
     {
@@ -25,6 +25,7 @@ namespace AKSaigyouji.Modules.MapGeneration
                 importer.spriteImportMode = SpriteImportMode.Single;
                 importer.textureType = TextureImporterType.Sprite;
                 var platformImporter = new TextureImporterPlatformSettings();
+                platformImporter.overridden = true;
                 platformImporter.format = TextureImporterFormat.RGBA32;
                 platformImporter.textureCompression = TextureImporterCompression.Uncompressed;
                 importer.SetPlatformTextureSettings(platformImporter);

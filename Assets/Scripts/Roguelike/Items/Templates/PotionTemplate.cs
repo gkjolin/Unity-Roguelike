@@ -23,7 +23,7 @@ namespace AKSaigyouji.Roguelike
             return string.Format(ItemDescriptionFormat, healthRestored);
         }
 
-        protected override Item FinishBuilding(List<Affix> affixes, string name)
+        protected override Item OnFinishBuilding(List<Affix> affixes, string name)
         {
             return new Potion(this, name);
         }

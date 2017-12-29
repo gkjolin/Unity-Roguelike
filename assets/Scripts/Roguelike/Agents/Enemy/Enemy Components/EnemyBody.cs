@@ -7,14 +7,11 @@ namespace AKSaigyouji.Roguelike
     /// <summary>
     /// Represents the destroyable body of an enemy.
     /// </summary>
-    public class EnemyBody : MonoBehaviour, IAttackable, IHealable
+    public sealed class EnemyBody : MonoBehaviour, IAttackable, IHealable
     {
         public string Name { get { return name; } }
 
-        int Health { get { return stats.CurrentHealth; } }
-        int Defense { get { return stats.Defense; } }
-
-        bool IsDead { get { return Health <= 0; } }
+        bool IsDead { get { return stats.CurrentHealth <= 0; } }
 
         EnemyStats stats;
 
@@ -31,21 +28,29 @@ namespace AKSaigyouji.Roguelike
             this.stats = stats;
         }
 
-        public virtual void Attack(int damageRoll, string attackText)
+        public Defense GetDefense()
         {
-            if (IsDead)
+            var defense = new Defense()
             {
-                return; // don't beat a dead horse
-            }
-            stats.InflictDamage(damageRoll);
-            string attackTextFormat = IsDead ? "You deal {0} damage, fatally wounding it." : "{0} damage dealt.";
-            string attackResultText = string.Format(attackTextFormat, damageRoll);
-            Logger.LogFormat("{0} {1}", attackText, attackResultText);
-            if (IsDead)
+                NameOfDefender = name,
+
+                CurrentHealth = stats.CurrentHealth,
+                MaxHealth = stats.MaxHealth,
+                Armor = 25
+            };
+            return defense;
+        }
+
+        public void Attack(AttackResult attack)
+        {
+            if (attack.IsSuccess)
             {
-                // It's important we do this after we've logged the attack, otherwise any logging conducted by
-                // the Die method would come before the attack.
-                Die();
+                stats.InflictDamage(attack.TotalDamage);
+                Heal(attack.TotalHealing);
+                if (IsDead)
+                {
+                    Die();
+                }
             }
         }
 

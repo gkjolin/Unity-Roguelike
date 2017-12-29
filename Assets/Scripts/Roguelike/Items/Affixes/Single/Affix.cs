@@ -27,6 +27,7 @@ namespace AKSaigyouji.Roguelike
         public bool IsPrefix { get { return affix.IsPrefix; } }
         public bool IsSuffix { get { return affix.IsSuffix; } }
         public QualityRoll Quality { get { return quality; } }
+        public int Order { get { return affix.Order; } }
 
         // This is a light-weight way to represent a potentially large number of affixes.
         [SerializeField] AffixDefinition affix;

@@ -12,7 +12,7 @@ namespace AKSaigyouji.Roguelike
 
         public override string ItemDescription
         {
-            get { return template.BuildDescription(Armor); }
+            get { return Template.BuildDescription(Armor); }
         }
 
         [SerializeField] int armor;

@@ -28,10 +28,7 @@ namespace AKSaigyouji.Roguelike
         {
             Assert.IsTrue(increment >= 0, "Attempted to increment time negatively.");
             time += increment;
-            if (OnTimeChange != null)
-            {
-                OnTimeChange();
-            }
+            OnTimeChange?.Invoke();
         }
 
         /// <summary>

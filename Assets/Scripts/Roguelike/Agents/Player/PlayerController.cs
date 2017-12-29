@@ -17,7 +17,8 @@ namespace AKSaigyouji.Roguelike
         [SerializeField] UnityEvent onLevelExit;
         [SerializeField] GameTime time;
         [SerializeField] PlayerStats stats;
-        [SerializeField] PlayerAttack attack;
+        [SerializeField] PlayerAttacker attacker;
+        [SerializeField] AttackResolver attackResolver;
         [SerializeField] Inventory inventory;
         [SerializeField] MapFilter mapFilter;
 
@@ -33,7 +34,8 @@ namespace AKSaigyouji.Roguelike
         {
             Assert.IsNotNull(time);
             Assert.IsNotNull(stats);
-            Assert.IsNotNull(attack);
+            Assert.IsNotNull(attacker);
+            Assert.IsNotNull(attackResolver);
             Assert.IsNotNull(mapFilter);
             Assert.IsNotNull(inventory);
         }
@@ -87,7 +89,10 @@ namespace AKSaigyouji.Roguelike
                     IAttackable target = collision.GetComponent<IAttackable>();
                     if (target != null) // that something can be attacked
                     {
-                        attack.Attack(target);
+                        Defense defense = target.GetDefense();
+                        Attack attack = attacker.BuildAttack();
+                        AttackResult result = attackResolver.ResolvePhysicalAttack(attack, defense);
+                        target.Attack(result);
                         time.IncreaseBasedOnSpeed(AttackSpeed);
                     }
                 }

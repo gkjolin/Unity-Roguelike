@@ -14,33 +14,41 @@ namespace AKSaigyouji.Roguelike
     {
         readonly StatBooster minBooster = new StatBooster();
         readonly StatBooster maxBooster = new StatBooster();
+        readonly StatBooster damageBooster = new StatBooster();
         readonly StatBooster critBooster = new StatBooster();
+        readonly StatBooster speedBooster = new StatBooster();
 
         public static bool IsWeaponAttribute(Attribute attribute)
         {
             return attribute == Attribute.MinDamage
                 || attribute == Attribute.MaxDamage
+                || attribute == Attribute.WeaponDamage
+                || attribute == Attribute.AttackSpeed
                 || attribute == Attribute.CritMultiplier;
         }
 
-        public void ApplyWeaponAttribute(Attribute attribute, EnhancementPriority priority, int value)
+        public void ApplyWeaponAttribute(Attribute attribute, EnhancementOperation operation, int value)
         {
-            Assert.IsTrue(priority == EnhancementPriority.FirstAdditive 
-                       || priority == EnhancementPriority.FirstMultiplicative
-                       || priority == EnhancementPriority.Override,
-                       "Item enhancements must be first-priority, since they always precede other effects.");
             Assert.IsTrue(IsWeaponAttribute(attribute));
             if (attribute == Attribute.MinDamage)
             {
-                minBooster.AddBoost(priority, value);
+                AddBoost(minBooster, operation, value);
             }
             else if (attribute == Attribute.MaxDamage)
             {
-                maxBooster.AddBoost(priority, value);
+                AddBoost(maxBooster, operation, value);
+            }
+            else if (attribute == Attribute.WeaponDamage)
+            {
+                AddBoost(damageBooster, operation, value);
+            }
+            else if (attribute == Attribute.AttackSpeed)
+            {
+                AddBoost(speedBooster, operation, value);
             }
             else if (attribute == Attribute.CritMultiplier)
             {
-                critBooster.AddBoost(priority, value);
+                AddBoost(critBooster, operation, value);
             }
         }
 
@@ -54,6 +62,11 @@ namespace AKSaigyouji.Roguelike
             return maxBooster.Boost(original);
         }
 
+        public int EnhanceAttackSpeed(int original)
+        {
+            return speedBooster.Boost(original);
+        }
+
         public int EnhanceCrit(int original)
         {
             return critBooster.Boost(original);
@@ -63,7 +76,14 @@ namespace AKSaigyouji.Roguelike
         {
             minBooster.Reset();
             maxBooster.Reset();
+            speedBooster.Reset();
             critBooster.Reset();
+        }
+
+        void AddBoost(StatBooster booster, EnhancementOperation operation, int value)
+        {
+            // weapon enhancements are all first-priority
+            booster.AddBoost(operation, value, StatBooster.Priority.First);
         }
     }
 }

@@ -14,7 +14,7 @@ namespace AKSaigyouji.Roguelike
 
         public override string ItemDescription
         {
-            get { return template.BuildDescription(Armor); }
+            get { return Template.BuildDescription(Armor); }
         }
 
         public BodyArmor(ArmorTemplate template, string name, IEnumerable<Affix> affixes, ArmorEnhancement armorEnhancement)

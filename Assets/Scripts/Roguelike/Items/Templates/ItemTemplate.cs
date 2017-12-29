@@ -6,7 +6,7 @@ using UnityEngine.Assertions;
 
 namespace AKSaigyouji.Roguelike
 {
-    public abstract class ItemTemplate : ScriptableObject 
+    public abstract class ItemTemplate : ScriptableObject
     {
         public string Name { get { return name; } }
         public Sprite Icon { get { return icon; } }
@@ -18,6 +18,8 @@ namespace AKSaigyouji.Roguelike
 
         bool isBuilding;
         protected List<Affix> tempAffixes;
+
+        static readonly IComparer<Affix> affixComparer = new AffixComparer();
 
         void OnEnable()
         {
@@ -64,10 +66,9 @@ namespace AKSaigyouji.Roguelike
             if (affix == null)
                 throw new ArgumentNullException("affix");
 
-            // Double-dispatch could be used to avoid the type-sniffing, but this is so much simpler,
-            // and we're unlikely to need to extend this
+            // Double-dispatch could be used to avoid the type-sniffing, but this is a lot simpler
             AttributeAffix attributeAffix = affix as AttributeAffix;
-            bool applyToItem = (attributeAffix != null) &&  IsApplicableToItem(attributeAffix);
+            bool applyToItem = (attributeAffix != null) && IsApplicableToItem(attributeAffix);
             if (applyToItem)
             {
                 ApplyToItem(attributeAffix, quality);
@@ -88,7 +89,8 @@ namespace AKSaigyouji.Roguelike
                 throw new ArgumentException("Must have a valid non-empty name.");
 
             isBuilding = false;
-            return FinishBuilding(tempAffixes, name);
+            tempAffixes.Sort(affixComparer);
+            return OnFinishBuilding(tempAffixes, name);
         }
 
         /// <summary>
@@ -107,6 +109,14 @@ namespace AKSaigyouji.Roguelike
             throw new ArgumentException("Affix not applicable to item.");
         }
 
-        protected abstract Item FinishBuilding(List<Affix> affixes, string name);
+        protected abstract Item OnFinishBuilding(List<Affix> affixes, string name);
+
+        sealed class AffixComparer : IComparer<Affix>
+        {
+            public int Compare(Affix x, Affix y)
+            {
+                return x.Order.CompareTo(y.Order);
+            }
+        }
     } 
 }

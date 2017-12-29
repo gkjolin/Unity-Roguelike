@@ -8,11 +8,11 @@ namespace AKSaigyouji.Roguelike
     [Serializable]
     public sealed class Potion : Item<PotionTemplate>, IConsumable
     {
-        public int HealthRestored { get { return template.HealthRestored; } }
+        public int HealthRestored { get { return Template.HealthRestored; } }
 
         public override string ItemDescription
         {
-            get { return template.BuildDescription(HealthRestored); }
+            get { return Template.BuildDescription(HealthRestored); }
         }
 
         public Potion(PotionTemplate template, string name) : base(template, name, Enumerable.Empty<Affix>()) { }

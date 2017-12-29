@@ -41,28 +41,16 @@ namespace AKSaigyouji.Roguelike
     [Serializable]
     public abstract class Item<T> : Item where T : ItemTemplate
     {
+        public T Template { get { return template; } }
         public override InventorySlot Slot { get { return template.Slot; } }
         public override Sprite Icon { get { return template.Icon; } }
         public override string Name { get { return name; } }
 
-        public override string ItemBonuses
-        {
-            get
-            {
-                if (affixes == null)
-                {
-                    return string.Empty;
-                }
-                else
-                {
-                    return string.Join("\n", affixes.Select(aff => aff.Description).ToArray());
-                }
-            }
-        }
+        public override string ItemBonuses { get { return string.Join("\n", affixes.Select(aff => aff.Description)); } }
 
-        [SerializeField] List<Affix> affixes;
+        [SerializeField] Affix[] affixes;
         [SerializeField] string name;
-        [SerializeField] protected T template;
+        [SerializeField] T template;
 
         public Item(T template, string name, IEnumerable<Affix> affixes)
         {
@@ -72,17 +60,14 @@ namespace AKSaigyouji.Roguelike
 
             this.template = template;
             this.name = name;
-            this.affixes = affixes.Any() ? affixes.ToList() : null;
+            this.affixes = affixes.ToArray();
         }
 
         public override sealed void ApplyEffects(IEquipContext context)
         {
-            if (affixes != null)
+            foreach (Affix affix in affixes)
             {
-                foreach (Affix affix in affixes)
-                {
-                    affix.Equip(context);
-                }
+                affix.Equip(context);
             }
         }
     }

@@ -8,15 +8,20 @@ namespace AKSaigyouji.Roguelike
 {
     public abstract class EnemyAI : GameBehaviour
     {
-        protected IMap Map { get { return map; } }
-        protected EnemyStats Stats { get { return stats; } }
+        protected IMap Map => map;
+        protected EnemyStats Stats => stats;
+        protected AttackResolver AttackResolver => attackResolver;
+
+        bool IsTimeToAct => GameTime.Current >= timeToNextAction;
 
         // enemies are created dynamically, so we can't manually set up dependencies in the editor (and there would
-        // be too many anyway). Instead, these have to be set up with the Initialize method.
+        // be too many anyway). Instead, these have to be set up with the Initialize method by a factory.
         IPathFinder pathFinder;
         Transform target;
         EnemyStats stats;
         IMap map;
+        AttackResolver attackResolver;
+
         double timeToNextAction;
 
         void Start()
@@ -24,17 +29,19 @@ namespace AKSaigyouji.Roguelike
             timeToNextAction = GameTime.Current;
         }
 
-        public void Initialize(IMap map, Transform target, EnemyStats stats, IPathFinder pathFinder)
+        public void Initialize(IMap map, Transform target, EnemyStats stats, IPathFinder pathFinder, AttackResolver attackResolver)
         {
-            if (map == null) throw new ArgumentNullException("map");
-            if (target == null) throw new ArgumentNullException("target");
-            if (stats == null) throw new ArgumentNullException("stats");
-            if (pathFinder == null) throw new ArgumentNullException("pathFinder");
+            if (map == null) throw new ArgumentNullException(nameof(map));
+            if (target == null) throw new ArgumentNullException(nameof(target));
+            if (stats == null) throw new ArgumentNullException(nameof(stats));
+            if (pathFinder == null) throw new ArgumentNullException(nameof(pathFinder));
+            if (attackResolver == null) throw new ArgumentNullException(nameof(attackResolver));
 
             this.map = map;
             this.target = target;
             this.stats = stats;
             this.pathFinder = pathFinder;
+            this.attackResolver = attackResolver;
         }
 
         protected abstract double Act(Transform target);
@@ -67,6 +74,17 @@ namespace AKSaigyouji.Roguelike
             }
         }
 
-        bool IsTimeToAct { get { return GameTime.Current >= timeToNextAction; } }
+        protected Attack BuildAttack()
+        {
+            var attack = new Attack()
+            {
+                NameOfAttacker = name,
+                PhysicalDamage = new MagnitudeRange(stats.MinDamage, stats.MaxDamage),
+                Accuracy = 100,
+                CritChance = 0,
+                CritMultiplier = 0
+            };
+            return attack;
+        }
     }  
 }

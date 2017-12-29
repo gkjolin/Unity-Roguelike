@@ -11,10 +11,9 @@
             Specifying values allows us to group related attributes into clusters. In the future, the clusters could
             also be used to create a custom dropdown hierarchy using a custom property drawer.
         
-            The pattern is to assign each cluster of attributes a multiple of 1000, and then add a multiple of 50 for each
-            attribute within that cluster. If we need to add a new attribute in the future, we can take the halfway value 
-            between two existing values. This gives space for up to 50 attributes between any two original attributes,
-            which is way more than we need.
+            The underlying values are spaced out by cluster and by individual attribute, to make it easy to 
+            add new clusters and new attributes inbetween existing ones so as to control ordering while preserving
+            the underlying values.
         */
 
         // primary
@@ -22,14 +21,16 @@
         Dexterity = 1050,
         Magic = 1100,
         Vitality = 1150,
+        AllAttributes = 1300,
 
         // non-physical defense
         FireResistance = 2000,
         ColdResistance = 2050,
         LightningResistance = 2100,
         PoisonResistance = 2150,
+        AllResistance = 2300,
 
-        // physical defense
+        // armor stats
         Armor = 3000,
 
         // defense against all
@@ -38,14 +39,15 @@
         Health = 5000,
         HealthPerVitality = 5050,
 
-        // offensive, physical
+        // weapon stats
         MinDamage = 9000,
         MaxDamage = 9050,
+        WeaponDamage = 9100,
         CritMultiplier = 9150,
+        AttackSpeed = 9200,
 
         // misc
         MoveSpeed = 10000,
-        AttackSpeed = 10050,
         PickupSpeed = 10100,
     } 
 }
