@@ -1,14 +1,14 @@
 # Roguelike
 
-This is a turn-based roguelike written in Unity I'm working on to experiment with various systems involved in roguelikes and RPGs. This includes procedural generation of levels, enemies and items, handling field of view (FOV), enemy AI, leveling, inventory management, turn management, etc. Many systems are modelled after corresponding systems in Diablo 2 and Path of Exile, though the game plays more like a traditional roguelike (Rogue, Nethack, Castle of the Winds, etc.) In addition to the systems themselves, I'm also exploring the use of tools (postprocessors, custom inspectors, property drawers, even full blown level editors) to enhance workflow. 
+This is a turn-based roguelike written in Unity I'm working on to experiment with various systems involved in roguelikes and RPGs. This includes procedural generation of levels, enemies and items, handling field of view (FOV), enemy AI, leveling, inventory management, turn management, etc. Many systems are modelled after corresponding systems in Diablo 2 and Path of Exile (particularly item and level generation), though the game plays more like a traditional roguelike (Rogue, Nethack, Castle of the Winds, etc.) 
 
-The game is playable (from the editor), but low on content and not terribly fun at the moment. Nonetheless, it may serve as a reference for those seeking to implement certain roguelike features. 
+The game is playable (from the editor), but low on content and not particularly interesting yet. Nonetheless, it may serve as a reference for those seeking to implement certain roguelike features. 
 
-Last tested with Unity 2017.1.1f1.
+Targets .NET 4.6, and currently uses Unity 2017.3.0f3.
 
 ![Roguelike Screenshot](https://imgur.com/vcWSwt6.png)
 
-Item and creature sprites were taken from [here](http://pousse.rapiere.free.fr/tome/), shared under the Creative Commons License, and drawn by David E. Gervais. 
+Almost all item and creature sprites were taken from [here](http://pousse.rapiere.free.fr/tome/), shared under the Creative Commons License, and drawn by David E. Gervais. 
 
 ## Setup and Controls
 
@@ -24,13 +24,7 @@ Note: Documentation may become out of date. Up to date controls can always be de
 
 ## Systems
 
-This section briefly documents at a high level how various in-game systems are implemented, as a reference for those trying to implement a similar system.
-
-### GameBehaviour
-
-GameBehaviour is a subclass of Unity's MonoBehaviour. Subclassing GameBehaviour instead of MonoBehaviour provides additional hooks for important events, such as when a new map is created, or when the player moves. It handles subscribing and unsubscribing to events so that this logic exists only in one place, reducing opportunity for error and making changes to the event system much easier. 
-
-Event driven architecture is notoriously error prone, but when used sparingly and carefully goes a long way in decoupling classes.
+I document the various systems used in the game here. Those interested in implementing something similar may find it useful.
 
 ### Time
 
@@ -42,19 +36,19 @@ Rather than having simple turns, the game runs on a custom time system where pla
 4. Subscribed entity checks if the current time exceeds the time for its next action.
 5. If so, entity acts, and increments its personal "time to next action" variable appropriately. Otherwise idles.
 
-The purpose is to easily accommodate a rich notion of speed: fast monsters may move or attack several times each time a player moves, while slower ones may allow the player several actions before acting. It also allows different actions to take different amounts of time. Moving is faster than attacking, and certain abilities may take longer than others.
+The purpose is to easily accommodate a rich notion of speed: fast monsters may move or attack several times each time a player moves, while slower ones may allow the player several actions before acting. It also allows different actions to take different amounts of time. Moving is (normally) faster than attacking, and certain abilities may take longer than others.
+
+It's also worth noting that this system would make it easy to switch to a real-time implementation, simply by having the game time automatically increment in an Update method instead of requiring the player to move. This is how Diablo 1 was switched to real-time after being designed as a turn-based game.
 
 Implementation notes:
 
 GameTime is an instance class, but provides public static readonly access to the current time. This means any class can check the current time at any time, but only a class with a reference to the instance can change the time, and only the player has such a reference. 
 
-Entities don't subscribe directly to GameTime's event. Instead, they implement the GameBehaviour class and override an appropriate method. 
+Entities don't subscribe directly to GameTime's event. Instead, they implement the GameBehaviour class and override an appropriate method. GameBehaviour handles subscribing/unsubscribing, so that logic exists in only one place.
 
 ### Tiles
 
 The map consists of individual tiles stitched together. The obvious approach is to have a GameObject for every tile. This has a lot of advantages, but is a heavyweight approach since gameobjects carry a lot of overhead. Instead, I opted to create a simple mesh which has the tiles "painted" onto it as a texture. This is highly performant, but makes it much harder to manipulate individual tiles, creating some challenges (see FOV in particular).
-
-Note: Unity will soon release its TileMap feature, which may be a far superior way to handle tiles in a roguelike.
 
 ### Field of View (FOV)
 
@@ -80,11 +74,9 @@ Currently the map generation uses a maze-room approach that closely resembles th
 0 - 0
 ```
 
-This consists of four rooms, with the dashes representing connections from one room to another. 
+This consists of four rooms, with the dashes representing connections from one room to another. At the moment, I only have a few chunks, and only one type of level. This will be ramped up when I switch from working on systems to content. 
 
 For more information see my Atlas project, which generalizes this system.
-
-In the future, I intend to implement a variety of different strategies for map generation, including more conventional ones. 
 
 ### Enemy spawning
 
@@ -100,17 +92,11 @@ If the player moves, or if an enemy has to take an alternate step, the previousl
 
 ### Enemy-Player interaction
 
-This is an area where I see a lot of spaghetti code in online examples - player components reference enemy components which reference player components, and before you know it, everything has hooks into everything else. A few simple interfaces help avoid this problem.
+This is an area where I see a lot of spaghetti code in online examples - player components reference enemy components which reference player components, and before you know it, everything has hooks into everything else.
 
-When an enemy tries to walk into a player or vice versa, a raycast is done, and the object struck by that raycast is searched for an "IAttackable" component (a component implementing that interface). If found, an appropriate attack method is called on that component. 
+When an enemy tries to walk into a player or vice versa, a raycast is performed, and the object struck by that raycast is searched for an "IAttackable" component (a component implementing that interface). If found, the attacker produces an "Attack" object, and the attacked produces a "Defense" object. These are POCOs (plain old CLR object) that produce all the information needed to resolve the attack (damage, health, defenses, crit chance, crit multiplier, resistances, accuracy, etc.). These objects are passed off to an "AttackResolver" which performs all the calculations for the attack, and returns an "AttackResult". This result is logged to the console and applied to the attacked target.
 
-The layer of indirection provided by an interface allows for the same piece of logic to handle quite a few different cases without explicitly coding them (player attacks enemy, enemy attacks player, enemy attacks other enemy, player attacks destructable environment, etc.). As long as the target has a component with an appropriate implementation of IAttackable, things will simply work. 
-
-Nonetheless it may prove useful to have some more abstractions at work. Eventually I may change to the following system:
-
-Some kind of "AttackResolver" object is given on instantiation to objects that can attack. AttackResolver takes an "Attack" object and a "Defense" object. When attacking, the attacker produces an Attack object, and gets a Defense object from the IAttackable, and passes them to the resolver to be handled. 
-
-Enemy-Player interaction is a system that will need ongoing tweaks, improvements, additions, etc. This heavier-handed approach helps isolate changes to the Attack/Defense/AttackResolver classes rather than their consumers. It also helps cut down on code duplication: in the current system, every new implementation of IAttackable is responsible for resolving an attack. 
+This is a system that will be regularly modified, so having a centralized implementation with minimal indirection will make it easy to maintain, and having all the calculations performed by AttackResolver makes it easy to add new types of attacking or attackable entities (destructible terrain, new enemies, traps, etc.). An attackable entity simply needs to be able to produce a Defense object, and an attacking entity needs to be able to produce an Attack object.
 
 ### Logging
 
@@ -120,10 +106,42 @@ Important actions (attacks, level ups, damage taken, etc.) are logged to the scr
 
 Items are defined by two hierarchies: templates and instances. Each subtype of ItemTemplate is a ScriptableObject specifying items that apply to a given inventory slot. e.g. WeaponTemplate, ShieldTemplate, ArmorTemplate, etc. Using scriptable objects for this allows many instances to be defined and maintained as separate assets in the editor. e.g. separate instances of WeaponTemplate for Scimitar, Longsword, Battle Axe, etc. This is a far more convenient and scalable approach than creating a new subclass for each of these instances. 
 
-The other hiararchy represents the actual instantiated in-game items. Each ItemTemplate has an associated Item type associated with it. e.g. WeaponTemplate and Weapon, ShieldTemplate and Shield. The Item instance maintains a (read-only) reference to its template, implementing the flyweight design pattern (there may be many Scimitar instances, but only one Scimitar template shared by all Scimitars). Having a separate class for the instance as opposed to just using the template also allows us to put extra features on the instance specific to that instance, namely affixes. 
+The other hiararchy represents the actual instantiated in-game items. Each ItemTemplate has an associated Item type associated with it. e.g. WeaponTemplate and Weapon, ShieldTemplate and Shield. The Item instance maintains a reference to its template, implementing the flyweight design pattern (there may be many Scimitar instances, but only one Scimitar template shared by all Scimitars). Having a separate class for the instance as opposed to just using the template also allows us to put extra features on the instance specific to that instance, namely affixes. 
 
-An affix system has not yet been implemented for items, but will be designed with Diablo 2's random item system in mind, with a randomly chosen prefix and suffix.
+### Affixes
+
+The affix system was a tricky one to design. Affixes are randomized modifiers that can appear on items, e.g. Flaming Longsword of The Stars has the two affixes "Flaming" and "The Stars", and they provide a variety of effects. They can do anything from enhancing the item they appear on (e.g. increasing a weapon's damage by 37%), to increasing a player's attributes (e.g. +5 to strength), to casting a spell in response to an event (e.g. 7% chance to cast lightning nova when struck), to modifying all sources of damage (e.g. +10% to all fire damage), etc. Naturally, this is a system requiring frequent additions, removals and balance changes, which should be permitted as much as possible in the editor (i.e. without having to write or change code). 
+
+Given the need to create/modify affixes in the editor, scriptable objects are an obvious choice. All affixes share a common abstract base class extending ScriptableObject, and various implementations handle affixes that behave fundamentally differently (AttributeAffix for affixes that improve some stat, SkillAffix for a skill that increases a skill, CombatAffix for an affix that triggers on acombat event, etc.). 
+
+Assigning affixes to items is simply enough - we can simply store them in a collection on the item in question, and when an item is equipped, it iterates through the affixes can calls an "OnEquip" method which activates the enhancement provided by the affix. This is done by providing an "IEquipContext" object with methods to accept the various types of affects to the OnEquip method. When an item is unequipped, all affixes are flushed and rebuilt from the currently equipped items. 
+
+### Player Attributes
+
+The attribute system was another important system to design carefully, as there are a lot of attributes, and a lot of systems interacting with the attributes: item affixes, spell effects, environmental effects, stat allocations on level-up, base attributes (potentially with multiple classes), etc. 
+
+Similar to the affixes, the attributes should be easy to add, remove, and balance. Enums are particularly easy to work with when it comes to serialization, the editor, and also in-code. They also make for very convenient dictionary keys for all kinds of tables. I settled upon using enums to represent attributes (and a number of other things) and wrote a special EnumDictionary class for the editor which automatically updates its keys so that it's always up to date with the enum: i.e. if I add an option to the enum, the dictionary will gain an entry in the editor corresponding to that key. Similarly, it will lose the corresponding entry if an enum option is removed. 
+
+Note that since EnumDictionary is generic (works with any enum as a key) some trickery was needed to get Unity to draw it in the Editor. The trick is to have the generic version inherit from a non-generic base class, write a custom inspector for the base class, then create an empty subclass of the generic version, and use that subclass in scripts.
+
+i.e.
+
+```
+[Serializable]
+public abstract class EnumDictionary{}
+
+[Serializable]
+public abstract class EnumDictionary<T, K> : EnumDictionary
+{
+  // full implementation
+}
+
+[Serializable]
+public sealed class IndexedAttributes : EnumDictionary<Attribute, int>{}
+```
+
+This kind of pattern appears in a few different places: a custom inspector is written for EnumDictionary, and it will be applied to all subclasses of EnumDictionary, bypassing two painful limitations with generics in Unity: can't serialize them, and can't define a custom inspector for them.
 
 ### Item drops
 
-Enemies have a component that drops items on death, with a reference to an item class. An item class is a scriptable object with a list of items or other item classes, each with a weight. When it dies, a weighted random roll determines what (if anything) drops. 
+Enemies have a component that drops items on death, with a reference to an item class. An item class is a scriptable object with a list of items or other item classes, each with a weight. When it dies, a weighted random roll determines what (if anything) drops. Better tools are definitely needed to build/maintain item classes however, as this will quickly become a tangled mess as it stands. 
